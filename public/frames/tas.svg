@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="stoneg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#555566" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#222233" stop-opacity="0.9"/>
+    </radialGradient>
+    <radialGradient id="gemg" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#7FD4FF"/>
+      <stop offset="100%" stop-color="#1A6EAA"/>
+    </radialGradient>
+  </defs>
+  <!-- Dış taş halkası -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#3A3A4A" stroke-width="18" opacity="0.85"/>
+  <!-- Taş dokusu çizgileri -->
+  <g stroke="#4A4A5A" stroke-width="0.8" opacity="0.5">
+    <path d="M30 60 Q50 55 55 75"/>
+    <path d="M25 80 Q40 78 45 95"/>
+    <path d="M170 60 Q150 55 145 75"/>
+    <path d="M175 80 Q160 78 155 95"/>
+    <path d="M55 170 Q58 152 75 150"/>
+    <path d="M145 170 Q142 152 125 150"/>
+    <path d="M20 110 Q35 107 38 125"/>
+    <path d="M180 110 Q165 107 162 125"/>
+  </g>
+  <!-- Altın iç çerçeve -->
+  <circle cx="100" cy="100" r="73" fill="none" stroke="#B8960C" stroke-width="3.5"/>
+  <circle cx="100" cy="100" r="73" fill="none" stroke="#FFD700" stroke-width="1.5" opacity="0.7"/>
+  <!-- Altın iç parlaması -->
+  <circle cx="100" cy="100" r="70" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.3"/>
+  <!-- Üst ortada altın çıkıntı -->
+  <path d="M86 18 Q100 8 114 18 Q108 14 100 12 Q92 14 86 18 Z" fill="#B8960C"/>
+  <path d="M88 19 Q100 10 112 19" fill="none" stroke="#FFD700" stroke-width="1.5" opacity="0.8"/>
+  <!-- Alt mavi taş (gem) -->
+  <ellipse cx="100" cy="182" rx="12" ry="8" fill="url(#gemg)"/>
+  <ellipse cx="100" cy="182" rx="12" ry="8" fill="none" stroke="#4ABAFF" stroke-width="1.5"/>
+  <ellipse cx="97" cy="179" rx="4" ry="3" fill="#A0E0FF" opacity="0.6"/>
+  <!-- Taş çerçevesi mavi taş etrafında -->
+  <path d="M85 182 Q100 172 115 182" fill="none" stroke="#B8960C" stroke-width="2"/>
+  <!-- Dört köşe altın detay -->
+  <g fill="none" stroke="#B8960C" stroke-width="1.5" opacity="0.8">
+    <path d="M38 38 Q44 32 50 38"/>
+    <path d="M162 38 Q156 32 150 38"/>
+    <path d="M38 162 Q44 168 50 162"/>
+    <path d="M162 162 Q156 168 150 162"/>
+  </g>
+</svg>

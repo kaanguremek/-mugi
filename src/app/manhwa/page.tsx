@@ -16,7 +16,7 @@ export default function ManhwaPage() {
             <div className="w-1 h-8 bg-[#EF9F27] rounded-full" />
             <h1 className="text-3xl font-bold text-white">Manhwa Nedir?</h1>
           </div>
-          <p className="text-[#9898b0] text-sm ml-4">HaeTae'ye hoş geldiniz — okumadan önce biraz bilgi edinelim.</p>
+          <p className="text-[#9898b0] text-sm ml-4">İmugi'ye hoş geldiniz — okumadan önce biraz bilgi edinelim.</p>
         </div>
 
         {/* Kartlar */}

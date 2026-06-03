@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90">
+  <defs>
+    <linearGradient id="hatg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2A2A2A"/>
+      <stop offset="100%" stop-color="#111111"/>
+    </linearGradient>
+  </defs>
+  <!-- Geniş ağız (brim) -->
+  <ellipse cx="60" cy="68" rx="56" ry="14" fill="#1A1A1A" stroke="#333" stroke-width="1.5"/>
+  <ellipse cx="60" cy="66" rx="52" ry="11" fill="#222" opacity="0.6"/>
+  <!-- Şapka gövdesi -->
+  <path d="M28 68 C28 40 38 12 60 8 C82 12 92 40 92 68 Z" fill="url(#hatg)" stroke="#333" stroke-width="1.5"/>
+  <!-- Altın bant -->
+  <path d="M30 58 C32 52 88 52 90 58" fill="none" stroke="#FFD700" stroke-width="3.5"/>
+  <path d="M30 58 C32 52 88 52 90 58" fill="none" stroke="#FFE566" stroke-width="1" opacity="0.7"/>
+  <!-- Toka -->
+  <rect x="50" y="50" width="20" height="14" rx="2" fill="#8B6914" stroke="#FFD700" stroke-width="1"/>
+  <rect x="54" y="54" width="12" height="6" rx="1" fill="#1A1A1A"/>
+  <!-- Kafatası -->
+  <g transform="translate(60,30)">
+    <!-- Kafatası şekli -->
+    <ellipse cx="0" cy="-4" rx="10" ry="9" fill="white"/>
+    <rect x="-8" y="3" width="16" height="6" rx="1" fill="white"/>
+    <!-- Göz delikleri -->
+    <ellipse cx="-4" cy="-5" rx="3.5" ry="3.5" fill="#1A1A1A"/>
+    <ellipse cx="4" cy="-5" rx="3.5" ry="3.5" fill="#1A1A1A"/>
+    <!-- Burun -->
+    <path d="M-1 0 L1 0 L0 2 Z" fill="#1A1A1A"/>
+    <!-- Dişler -->
+    <g fill="#1A1A1A">
+      <rect x="-7" y="4" width="3" height="4"/>
+      <rect x="-3" y="4" width="3" height="4"/>
+      <rect x="1" y="4" width="3" height="4"/>
+      <rect x="5" y="4" width="3" height="4"/>
+    </g>
+    <!-- Çapraz kemikler -->
+    <line x1="-14" y1="15" x2="14" y2="28" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="14" y1="15" x2="-14" y2="28" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+  <!-- Şapka gölgesi -->
+  <path d="M34 65 C38 58 82 58 86 65" fill="none" stroke="#000" stroke-width="1" opacity="0.4"/>
+</svg>

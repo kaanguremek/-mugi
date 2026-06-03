@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="metg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5A5A6A"/>
+      <stop offset="50%" stop-color="#3A3A4A"/>
+      <stop offset="100%" stop-color="#2A2A38"/>
+    </linearGradient>
+    <linearGradient id="metalSheen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#888899" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#AAAACC" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#888899" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Ana zırh halkası -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="url(#metg)" stroke-width="20"/>
+  <!-- Metal parlaması -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="url(#metalSheen)" stroke-width="20"/>
+  <!-- İç ve dış kenar -->
+  <circle cx="100" cy="100" r="78.5" fill="none" stroke="#666677" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="97.5" fill="none" stroke="#444455" stroke-width="1.5" opacity="0.7"/>
+  <!-- Üst orta menteşe/toka -->
+  <g transform="translate(100,8)">
+    <rect x="-12" y="-5" width="24" height="14" rx="3" fill="#4A4A5A" stroke="#666677" stroke-width="1"/>
+    <rect x="-8" y="-2" width="16" height="8" rx="2" fill="#3A3A48" stroke="#888899" stroke-width="0.8"/>
+    <line x1="-6" y1="2" x2="6" y2="2" stroke="#AAAACC" stroke-width="0.8" opacity="0.5"/>
+  </g>
+  <!-- Alt orta toka -->
+  <g transform="translate(100,192)">
+    <rect x="-10" y="-7" width="20" height="12" rx="3" fill="#4A4A5A" stroke="#666677" stroke-width="1"/>
+    <rect x="-7" y="-4" width="14" height="7" rx="2" fill="#3A3A48" stroke="#888899" stroke-width="0.8"/>
+  </g>
+  <!-- Sol toka -->
+  <g transform="translate(8,100)">
+    <rect x="-5" y="-10" width="12" height="20" rx="3" fill="#4A4A5A" stroke="#666677" stroke-width="1"/>
+    <rect x="-2" y="-7" width="7" height="14" rx="2" fill="#3A3A48" stroke="#888899" stroke-width="0.8"/>
+  </g>
+  <!-- Sağ toka -->
+  <g transform="translate(192,100)">
+    <rect x="-7" y="-10" width="12" height="20" rx="3" fill="#4A4A5A" stroke="#666677" stroke-width="1"/>
+    <rect x="-4" y="-7" width="7" height="14" rx="2" fill="#3A3A48" stroke="#888899" stroke-width="0.8"/>
+  </g>
+  <!-- Köşe perçinleri -->
+  <g fill="#555566" stroke="#777788" stroke-width="0.8">
+    <circle cx="40" cy="40" r="5"/>
+    <circle cx="160" cy="40" r="5"/>
+    <circle cx="40" cy="160" r="5"/>
+    <circle cx="160" cy="160" r="5"/>
+  </g>
+  <g fill="#888899" opacity="0.5">
+    <circle cx="40" cy="40" r="2.5"/>
+    <circle cx="160" cy="40" r="2.5"/>
+    <circle cx="40" cy="160" r="2.5"/>
+    <circle cx="160" cy="160" r="2.5"/>
+  </g>
+  <!-- Kazan tırtıkları -->
+  <g fill="none" stroke="#555566" stroke-width="1" opacity="0.6">
+    <path d="M 55 15 L 52 22"/>
+    <path d="M 145 15 L 148 22"/>
+    <path d="M 18 68 L 25 70"/>
+    <path d="M 182 68 L 175 70"/>
+    <path d="M 18 132 L 25 130"/>
+    <path d="M 182 132 L 175 130"/>
+    <path d="M 55 185 L 52 178"/>
+    <path d="M 145 185 L 148 178"/>
+  </g>
+  <!-- İç ince çerçeve -->
+  <circle cx="100" cy="100" r="70" fill="none" stroke="#555566" stroke-width="1" opacity="0.5"/>
+</svg>

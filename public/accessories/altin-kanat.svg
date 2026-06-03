@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 80">
+  <defs>
+    <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE566"/>
+      <stop offset="100%" stop-color="#B8960C"/>
+    </linearGradient>
+  </defs>
+  <!-- Sol kanat -->
+  <g>
+    <!-- Ana kanat şekli -->
+    <path d="M70 40 C58 32 42 20 22 18 C30 26 38 30 42 38 C28 28 12 25 8 32 C18 28 32 34 36 44 C22 36 8 38 10 48 C20 40 36 44 38 55 C28 46 16 52 22 60 L45 52 Z" fill="url(#wg)" stroke="#8B6914" stroke-width="1"/>
+    <!-- Tüy çizgileri -->
+    <g stroke="#8B6914" stroke-width="0.7" opacity="0.6">
+      <line x1="60" y1="36" x2="30" y2="22"/>
+      <line x1="56" y1="40" x2="22" y2="30"/>
+      <line x1="54" y1="44" x2="20" y2="40"/>
+      <line x1="54" y1="49" x2="24" y2="48"/>
+      <line x1="56" y1="53" x2="30" y2="56"/>
+    </g>
+    <!-- Parlaklık -->
+    <path d="M62 34 C50 27 35 18 18 17" fill="none" stroke="#FFE566" stroke-width="1.5" opacity="0.5"/>
+  </g>
+  <!-- Sağ kanat (ayna) -->
+  <g transform="translate(140,0) scale(-1,1)">
+    <path d="M70 40 C58 32 42 20 22 18 C30 26 38 30 42 38 C28 28 12 25 8 32 C18 28 32 34 36 44 C22 36 8 38 10 48 C20 40 36 44 38 55 C28 46 16 52 22 60 L45 52 Z" fill="url(#wg)" stroke="#8B6914" stroke-width="1"/>
+    <g stroke="#8B6914" stroke-width="0.7" opacity="0.6">
+      <line x1="60" y1="36" x2="30" y2="22"/>
+      <line x1="56" y1="40" x2="22" y2="30"/>
+      <line x1="54" y1="44" x2="20" y2="40"/>
+      <line x1="54" y1="49" x2="24" y2="48"/>
+      <line x1="56" y1="53" x2="30" y2="56"/>
+    </g>
+    <path d="M62 34 C50 27 35 18 18 17" fill="none" stroke="#FFE566" stroke-width="1.5" opacity="0.5"/>
+  </g>
+</svg>

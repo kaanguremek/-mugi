@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="iceg" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#B0D8FF" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#4A90D9" stop-opacity="0.25"/>
+    </radialGradient>
+  </defs>
+  <!-- Dış halka -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#6ABEFC" stroke-width="1" opacity="0.3"/>
+  <!-- Ana buz çerçevesi -->
+  <circle cx="100" cy="100" r="75" fill="none" stroke="#A8D8FF" stroke-width="6" opacity="0.55"/>
+  <circle cx="100" cy="100" r="75" fill="none" stroke="#6ABEFC" stroke-width="2.5" opacity="0.8"/>
+  <circle cx="100" cy="100" r="69" fill="none" stroke="#B8E4FF" stroke-width="1.2" opacity="0.5"/>
+  <!-- Buz kristalleri - üst -->
+  <g fill="#A8D8FF" opacity="0.85">
+    <path d="M100 10 L103 22 L100 28 L97 22 Z"/>
+    <path d="M100 18 L107 21 L100 24 L93 21 Z"/>
+    <line x1="100" y1="10" x2="100" y2="28" stroke="#D0EEFF" stroke-width="1"/>
+    <line x1="93" y1="21" x2="107" y2="21" stroke="#D0EEFF" stroke-width="1"/>
+  </g>
+  <!-- Buz kristalleri - alt -->
+  <g fill="#A8D8FF" opacity="0.85" transform="translate(200,200) rotate(180)">
+    <path d="M100 10 L103 22 L100 28 L97 22 Z"/>
+    <path d="M100 18 L107 21 L100 24 L93 21 Z"/>
+    <line x1="100" y1="10" x2="100" y2="28" stroke="#D0EEFF" stroke-width="1"/>
+    <line x1="93" y1="21" x2="107" y2="21" stroke="#D0EEFF" stroke-width="1"/>
+  </g>
+  <!-- Sol alt kelebek -->
+  <g transform="translate(30,140)" opacity="0.82">
+    <path d="M0 15 C-8 5 -18 2 -14 12 C-10 18 -4 16 0 15 Z" fill="#6ABEFC"/>
+    <path d="M0 15 C-6 22 -14 28 -10 20 C-6 14 -2 14 0 15 Z" fill="#4A90D9"/>
+    <path d="M0 15 C8 5 18 2 14 12 C10 18 4 16 0 15 Z" fill="#6ABEFC"/>
+    <path d="M0 15 C6 22 14 28 10 20 C6 14 2 14 0 15 Z" fill="#4A90D9"/>
+    <circle cx="0" cy="15" r="2" fill="#B8E4FF"/>
+  </g>
+  <!-- Kar tanesi parıltıları -->
+  <g fill="#D0EEFF" opacity="0.7">
+    <circle cx="42" cy="42" r="2.5"/>
+    <circle cx="158" cy="42" r="2.5"/>
+    <circle cx="42" cy="158" r="2.5"/>
+    <circle cx="158" cy="158" r="2.5"/>
+    <circle cx="100" cy="18" r="2"/>
+    <circle cx="100" cy="182" r="2"/>
+    <circle cx="18" cy="100" r="2"/>
+    <circle cx="182" cy="100" r="2"/>
+  </g>
+  <!-- Buz damlası süsü - sağ alt -->
+  <g transform="translate(160,145)" opacity="0.8">
+    <ellipse cx="0" cy="-8" rx="4" ry="6" fill="#6ABEFC"/>
+    <path d="M-3 -4 C-3 2 3 2 3 -4 L0 6 Z" fill="#4A90D9"/>
+    <ellipse cx="0" cy="-8" rx="4" ry="6" fill="none" stroke="#A8D8FF" stroke-width="0.8"/>
+  </g>
+  <!-- Kar tanesi - sol üst -->
+  <g transform="translate(38,38)" stroke="#A8D8FF" stroke-width="1" opacity="0.7">
+    <line x1="0" y1="-8" x2="0" y2="8"/>
+    <line x1="-7" y1="-4" x2="7" y2="4"/>
+    <line x1="-7" y1="4" x2="7" y2="-4"/>
+    <line x1="-4" y1="-7" x2="4" y2="7"/>
+    <line x1="-4" y1="7" x2="4" y2="-7"/>
+  </g>
+</svg>

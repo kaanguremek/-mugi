@@ -9,23 +9,25 @@ export default function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2.5 mb-4">
               <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#EF9F27]/60 flex-shrink-0">
-                <Image src="/logo.png" alt="HaeTae" width={32} height={32} className="w-full h-full object-cover" />
+                <Image src="/logo.png" alt="İmugi" width={32} height={32} className="w-full h-full object-cover" />
               </div>
               <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#EF9F27] to-[#F5BA45]">
-                HaeTae
+                İmugi
               </span>
             </Link>
-            <p className="text-xs text-[#555570] leading-relaxed">
-              Türkçe manhwa, manga ve webtoon okuma platformu. Hız ve kalite versiyonlarıyla en güncel çeviriler.
-            </p>
           </div>
           <div>
             <h4 className="text-sm font-semibold text-[#9898b0] mb-3">Keşfet</h4>
             <ul className="space-y-2">
-              {['Seriler', 'Popüler', 'Son Eklenenler', 'Tamamlananlar'].map(item => (
-                <li key={item}>
-                  <Link href="/seriler" className="text-xs text-[#555570] hover:text-[#EF9F27] transition-colors">
-                    {item}
+              {[
+                { label: 'Seriler',        href: '/seriler'                    },
+                { label: 'Popüler',        href: '/seriler?sort=popular'       },
+                { label: 'Son Eklenenler', href: '/seriler?sort=updated'       },
+                { label: 'Tamamlananlar',  href: '/seriler?status=completed'   },
+              ].map(({ label, href }) => (
+                <li key={label}>
+                  <Link href={href} className="text-xs text-[#555570] hover:text-[#EF9F27] transition-colors">
+                    {label}
                   </Link>
                 </li>
               ))}
@@ -46,7 +48,7 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-[#9898b0] mb-3">Hesap</h4>
             <ul className="space-y-2">
-              {[['Giriş Yap', '/auth/login'], ['Üye Ol', '/auth/register'], ['Listem', '/bookmarks'], ['İletişim', '/iletisim']].map(([label, href]) => (
+              {[['Giriş Yap', '/login'], ['Üye Ol', '/register'], ['Listem', '/bookmarks'], ['İletişim', '/iletisim']].map(([label, href]) => (
                 <li key={label}>
                   <Link href={href} className="text-xs text-[#555570] hover:text-[#EF9F27] transition-colors">
                     {label}
@@ -57,7 +59,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-[#1e1e2e] mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-2">
-          <p className="text-xs text-[#333350]">© 2026 HaeTae. Tüm hakları saklıdır.</p>
+          <p className="text-xs text-[#333350]">© 2026 İmugi. Tüm hakları saklıdır.</p>
           <p className="text-xs text-[#333350]">
             Bu site herhangi bir yayıncı ile bağlantılı değildir.
           </p>

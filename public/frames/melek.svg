@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="haloGlow" cx="50%" cy="10%" r="65%">
+      <stop offset="0%" stop-color="#FFE566" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#FFE566" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Işık parlaması -->
+  <ellipse cx="100" cy="25" rx="80" ry="55" fill="url(#haloGlow)"/>
+  <!-- Işık huzmesi -->
+  <g stroke="#FFE566" stroke-width="1.2" opacity="0.28">
+    <line x1="100" y1="30" x2="18" y2="195"/>
+    <line x1="100" y1="30" x2="48" y2="198"/>
+    <line x1="100" y1="30" x2="74" y2="200"/>
+    <line x1="100" y1="30" x2="100" y2="200"/>
+    <line x1="100" y1="30" x2="126" y2="200"/>
+    <line x1="100" y1="30" x2="152" y2="198"/>
+    <line x1="100" y1="30" x2="182" y2="195"/>
+  </g>
+  <!-- Hale -->
+  <ellipse cx="100" cy="31" rx="27" ry="8" fill="#FFD700" opacity="0.22"/>
+  <ellipse cx="100" cy="31" rx="27" ry="8" fill="none" stroke="#FFD700" stroke-width="4"/>
+  <ellipse cx="100" cy="31" rx="27" ry="8" fill="none" stroke="#FFFACD" stroke-width="1.2" opacity="0.65"/>
+  <!-- Sol kanat -->
+  <path d="M71 32 C56 22 36 26 29 38 C42 30 56 35 62 45 C45 31 39 45 43 57 C54 39 67 44 70 54" fill="#F5EFD5" opacity="0.92"/>
+  <path d="M71 32 C56 22 36 26 29 38" fill="none" stroke="#FFD700" stroke-width="0.8" opacity="0.55"/>
+  <!-- Sağ kanat -->
+  <path d="M129 32 C144 22 164 26 171 38 C158 30 144 35 138 45 C155 31 161 45 157 57 C146 39 133 44 130 54" fill="#F5EFD5" opacity="0.92"/>
+  <path d="M129 32 C144 22 164 26 171 38" fill="none" stroke="#FFD700" stroke-width="0.8" opacity="0.55"/>
+  <!-- Sol alt bulut -->
+  <g opacity="0.58">
+    <ellipse cx="22" cy="168" rx="21" ry="12" fill="white"/>
+    <ellipse cx="39" cy="160" rx="17" ry="10" fill="white"/>
+    <ellipse cx="12" cy="176" rx="14" ry="9" fill="white"/>
+  </g>
+  <!-- Sağ alt bulut -->
+  <g opacity="0.58">
+    <ellipse cx="178" cy="168" rx="21" ry="12" fill="white"/>
+    <ellipse cx="161" cy="160" rx="17" ry="10" fill="white"/>
+    <ellipse cx="188" cy="176" rx="14" ry="9" fill="white"/>
+  </g>
+  <!-- Daire çerçeve -->
+  <circle cx="100" cy="110" r="70" fill="none" stroke="#FFD700" stroke-width="2.2" opacity="0.78"/>
+  <circle cx="100" cy="110" r="67" fill="none" stroke="#FFFACD" stroke-width="0.8" opacity="0.35"/>
+</svg>

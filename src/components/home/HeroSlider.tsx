@@ -1,136 +1,149 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Play, Bookmark, Star, BookOpen } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { ChevronLeft, ChevronRight, Play, Bookmark, BookmarkCheck, Star, BookOpen } from 'lucide-react'
+import { cn, STATUS_LABELS } from '@/lib/utils'
+import { useAuth } from '@/lib/auth-context'
+import { getAllSeries } from '@/lib/series-store'
+import type { Series } from '@/lib/types'
 
-const MOCK_FEATURED = [
-  {
-    id:'1', slug:'solo-leveling', title:'Solo Leveling',
-    description: 'Dünyanın en zayıf avcısı Sung Jinwoo, sıradan bir avcıyken gizemli bir double dungeon\'da neredeyse hayatını kaybeder. Bu olaydan sonra yalnızca ona görünen bir sistem penceresiyle uyanır ve seviye atlayan tek insan olarak inanılmaz bir güce ulaşmaya başlar.',
-    cover_url:'https://picsum.photos/seed/solo/400/600',
-    banner_url:'https://picsum.photos/seed/solo-banner/1400/500',
-    rating:9.8, status:'completed', genre_names:['Aksiyon','Fantastik','Sistem'],
-    latest_chapter:179,
-  },
-  {
-    id:'2', slug:'omniscient-reader', title:'Her Şeyi Bilen Okuyucu',
-    description: 'Kim Dokja, yıllarca okuduğu web romanının gerçeğe dönüştüğünü fark eder. Romanın tek okuyucusu olarak tüm olay örgüsünü bilen Dokja, hayatta kalmak için bu bilgiyi kullanmak zorundadır. Ama asıl soru şu: Yazar bu sona nasıl karar verdi ve değiştirilebilir mi?',
-    cover_url:'https://picsum.photos/seed/omni/400/600',
-    banner_url:'https://picsum.photos/seed/omni-banner/1400/500',
-    rating:9.6, status:'completed', genre_names:['Aksiyon','Drama','Fantastik'],
-    latest_chapter:551,
-  },
-  {
-    id:'3', slug:'reformation-deadbeat', title:'Tembel Soylunun Değişimi',
-    description: 'Önceki hayatında tembel ve amaçsız bir soylu olan Rowan Gonzo, ölümünden önce pişmanlık içinde geçirdiği 20 yılı görür. Yeniden doğduğunda çocukluk yıllarına dönen Rowan, bu kez kılıç, siyaset ve aile arasında çok daha farklı kararlar almaya kararlıdır.',
-    cover_url:'https://picsum.photos/seed/reform/400/600',
-    banner_url:'https://picsum.photos/seed/reform-banner/1400/500',
-    rating:9.4, status:'ongoing', genre_names:['Fantastik','Aksiyon','Macera'],
-    latest_chapter:144,
-  },
-]
+
+type Slide = Series & { description: string }
 
 export default function HeroSlider() {
+  const [slides,  setSlides]  = useState<Slide[]>([])
   const [current, setCurrent] = useState(0)
-  const [fading, setFading] = useState(false)
-  const items = MOCK_FEATURED
+  const [fading,  setFading]  = useState(false)
+  const [paused,  setPaused]  = useState(false)
+  const { toggleBookmark, isBookmarked } = useAuth()
+
+  useEffect(() => {
+    getAllSeries().then(all => {
+      const built: Slide[] = []
+
+      all
+        .filter(s => !s.id.startsWith('mock') && s.cover_url)
+        .slice(0, 6)
+        .forEach(s => built.push({ ...s, description: s.description ?? '' }))
+
+      setSlides(built)
+    })
+  }, [])
 
   const go = (idx: number) => {
     setFading(true)
-    setTimeout(() => { setCurrent(idx); setFading(false) }, 250)
+    setTimeout(() => { setCurrent(idx); setFading(false) }, 220)
   }
 
   useEffect(() => {
-    const t = setInterval(() => go((current + 1) % items.length), 6000)
+    if (paused || slides.length === 0) return
+    const t = setInterval(() => go((current + 1) % slides.length), 6000)
     return () => clearInterval(t)
-  }, [current])
+  }, [current, paused, slides.length])
 
-  const s = items[current]
+  if (slides.length === 0) return (
+    <div className="rounded-2xl border border-[#1e1e2e] bg-[#0d0d14]" style={{ height: '280px' }} />
+  )
+
+  const s = slides[current]
+  const bookmarked = isBookmarked(s.slug)
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-[#1e1e2e]" style={{ height: '310px' }}>
+    <div
+      className="relative rounded-2xl overflow-hidden border border-[#1e1e2e] bg-[#0d0d14]"
+      style={{ height: '300px' }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-[#EF9F27]/4 via-transparent to-transparent pointer-events-none" />
 
-      {/* Arka plan banner */}
-      {/* Düz koyu arka plan */}
-      <div className="absolute inset-0 bg-[#0d0d14]" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#EF9F27]/5 via-transparent to-transparent" />
-
-      {/* İçerik */}
       <div className={cn(
-        'relative h-full flex items-center px-6 gap-6 transition-opacity duration-250',
+        'relative h-full flex items-stretch px-4 sm:px-6 gap-4 sm:gap-6 transition-opacity duration-220',
         fading ? 'opacity-0' : 'opacity-100'
       )}>
 
-        {/* Kapak */}
-        <div className="hidden sm:block flex-shrink-0 w-[130px] h-[185px] rounded-xl overflow-hidden border border-[#EF9F27]/35 shadow-2xl shadow-black/60">
-          <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${s.cover_url})` }} />
+        {/* KAPAK — aspect-[3/4] ile LatestChapters ile aynı oran */}
+        <div className="flex-shrink-0 self-stretch flex items-center py-5">
+          <div className="h-full aspect-[3/4] max-h-[240px] rounded-xl overflow-hidden border border-[#EF9F27]/35 shadow-2xl shadow-black/60">
+            <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${s.cover_url})` }} />
+          </div>
         </div>
 
-        {/* SOL — başlık + meta + butonlar */}
-        <div className="flex-shrink-0 w-[260px]">
-          <div className="flex gap-1.5 mb-2.5">
-            {s.genre_names.slice(0,3).map(g => (
-              <span key={g} className="text-[10px] bg-[#EF9F27]/20 border border-[#EF9F27]/30 text-[#EF9F27] px-2 py-0.5 rounded-full">
+        {/* ORTA — meta + butonlar (sabit genişlik, flex-1 değil) */}
+        <div className="flex flex-col justify-center gap-2 py-4 min-w-0 w-[240px] sm:w-[260px]">
+          <div className="flex gap-1 flex-wrap">
+            {s.genre_names?.slice(0, 3).map(g => (
+              <span key={g} className="text-[9px] sm:text-[10px] bg-[#EF9F27]/20 border border-[#EF9F27]/30 text-[#EF9F27] px-1.5 sm:px-2 py-0.5 rounded-full">
                 {g}
               </span>
             ))}
           </div>
 
-          <h2 className="text-xl font-bold text-white mb-2 leading-tight">
+          <h2 className="text-sm sm:text-lg lg:text-xl font-bold text-white leading-tight line-clamp-1">
             {s.title}
           </h2>
 
-          <div className="flex items-center gap-3 text-xs text-[#9898b0] mb-5">
+          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-[#9898b0] flex-wrap">
             <span className="flex items-center gap-1 text-yellow-400 font-semibold">
-              <Star size={11} fill="currentColor" /> {s.rating}
+              <Star size={10} fill="currentColor" /> {s.rating > 0 ? s.rating : '—'}
             </span>
-            <span className="flex items-center gap-1">
-              <BookOpen size={11} /> Bölüm {s.latest_chapter}
+            <span className="hidden sm:flex items-center gap-1">
+              <BookOpen size={10} /> Bölüm {s.latest_chapter ?? s.chapter_count ?? 0}
             </span>
-            <span className={s.status === 'ongoing' ? 'text-[#22C55E]' : 'text-[#EF9F27]'}>
-              {s.status === 'ongoing' ? 'Devam Ediyor' : 'Tamamlandı'}
+            <span className={cn('font-medium', s.status === 'ongoing' ? 'text-[#22C55E]' : 'text-[#EF9F27]')}>
+              {STATUS_LABELS[s.status] ?? s.status}
             </span>
           </div>
 
-          <div className="flex gap-2">
+          {/* Butonlar */}
+          <div className="flex gap-2 mt-1">
             <Link href={`/seri/${s.slug}`}
-              className="flex items-center gap-1.5 bg-[#EF9F27] hover:bg-[#BA7517] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-lg hover:shadow-[#EF9F27]/30">
-              <Play size={12} fill="currentColor" /> Okumaya Başla
+              className="flex items-center justify-center gap-1.5 bg-[#EF9F27] hover:bg-[#BA7517] text-white text-xs font-semibold px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap">
+              <Play size={11} fill="currentColor" />
+              <span className="hidden sm:inline">Okumaya Başla</span>
+              <span className="sm:hidden">Oku</span>
             </Link>
-            <button className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-[#9898b0] hover:text-white text-xs px-4 py-2 rounded-lg transition-all">
-              <Bookmark size={12} /> Listeme Ekle
+            <button onClick={() => toggleBookmark(s.slug)}
+              className={cn('flex items-center justify-center gap-1.5 text-xs px-3 sm:px-4 py-2 rounded-lg transition-all border whitespace-nowrap',
+                bookmarked
+                  ? 'bg-[#EF9F27]/15 border-[#EF9F27]/40 text-[#EF9F27]'
+                  : 'bg-white/5 hover:bg-white/10 border-white/10 text-[#9898b0] hover:text-white'
+              )}>
+              {bookmarked ? <BookmarkCheck size={11} /> : <Bookmark size={11} />}
+              <span className="hidden sm:inline">{bookmarked ? 'Listemde' : 'Listeme Ekle'}</span>
             </button>
           </div>
         </div>
 
-        {/* Ayraç çizgisi */}
-        <div className="hidden lg:block w-px self-stretch my-8 bg-white/10 flex-shrink-0" />
-
-        {/* SAĞ — doğal açıklama */}
-        <div className="hidden lg:flex flex-1 flex-col justify-center gap-2 min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#EF9F27]/70">Konu</p>
-          <p className="text-sm text-[#b8b8cc] leading-relaxed">
-            {s.description}
-          </p>
-        </div>
+        {/* KONU PANELİ — flex-1 ile kalan tüm alanı kaplar */}
+        {s.description && (
+          <div className="hidden lg:flex items-center gap-4 flex-1 min-w-0">
+            <div className="w-px self-stretch my-8 bg-white/10 flex-shrink-0" />
+            <div className="flex flex-col justify-center gap-2 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#EF9F27]/60">Konu</p>
+              <p className="text-sm text-[#b0b0c8] leading-relaxed line-clamp-7">
+                {s.description}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Oklar + dots — alt sol */}
+      {/* Oklar + dots */}
       <div className="absolute bottom-3 left-4 flex items-center gap-2">
-        <button onClick={() => go((current - 1 + items.length) % items.length)}
-          className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/50 hover:text-white transition-all">
+        <button onClick={() => go((current - 1 + slides.length) % slides.length)}
+          className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all">
           <ChevronLeft size={13} />
         </button>
-        <button onClick={() => go((current + 1) % items.length)}
-          className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/50 hover:text-white transition-all">
+        <button onClick={() => go((current + 1) % slides.length)}
+          className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all">
           <ChevronRight size={13} />
         </button>
         <div className="flex items-center gap-1.5 ml-1">
-          {items.map((_, i) => (
+          {slides.map((_, i) => (
             <button key={i} onClick={() => go(i)}
               className={cn('rounded-full transition-all duration-300',
-                i === current ? 'w-4 h-1.5 bg-[#EF9F27]' : 'w-1.5 h-1.5 bg-white/20 hover:bg-white/40'
+                i === current ? 'w-4 h-1.5 bg-[#EF9F27]' : 'w-1.5 h-1.5 bg-white/15 hover:bg-white/30'
               )} />
           ))}
         </div>

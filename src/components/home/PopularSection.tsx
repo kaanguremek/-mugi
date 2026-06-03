@@ -1,58 +1,98 @@
 'use client'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Star, Eye, TrendingUp } from 'lucide-react'
-import { formatNumber, cn } from '@/lib/utils'
+import { TrendingUp } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { getAllSeries } from '@/lib/series-store'
+import type { Series } from '@/lib/types'
 
-const POPULAR = [
-  { id:'1', slug:'solo-leveling', title:'Solo Leveling', cover:'https://picsum.photos/seed/sl/80/110', rating:9.8, views:2400000, genres:['Aksiyon'] },
-  { id:'2', slug:'omniscient', title:'Her Şeyi Bilen Okuyucu', cover:'https://picsum.photos/seed/omni3/80/110', rating:9.6, views:1800000, genres:['Drama'] },
-  { id:'5', slug:'deadbeat', title:'Reformation of the Deadbeat Noble', cover:'https://picsum.photos/seed/dbn4/80/110', rating:9.7, views:1200000, genres:['Fantastik'] },
-  { id:'3', slug:'reform', title:'Tembel Soylunun Değişimi', cover:'https://picsum.photos/seed/ref3/80/110', rating:9.4, views:980000, genres:['Fantastik'] },
-  { id:'4', slug:'academy', title:"Academy's Genius Swordmaster", cover:'https://picsum.photos/seed/ags2/80/110', rating:9.0, views:760000, genres:['Aksiyon'] },
+const PERIODS = [
+  { key: 'weekly',  label: 'Haftalık'     },
+  { key: 'monthly', label: 'Aylık'        },
+  { key: 'alltime', label: 'Tüm Zamanlar' },
 ]
 
-export default function PopularSection() {
+
+function StarRating({ rating }: { rating: number }) {
+  const full = Math.floor(rating / 2)
+  const half = (rating / 2) % 1 >= 0.5
   return (
-    <section>
-      <div className="flex items-center mb-5">
-        <div className="w-1 h-6 bg-[#EF9F27] rounded-full mr-3" />
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map(i => (
+        <svg key={i} className={cn('w-3 h-3', i <= full ? 'text-[#EF9F27]' : i === full + 1 && half ? 'text-[#EF9F27]' : 'text-[#333350]')}
+          fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+      <span className="text-xs font-bold text-white ml-1">{(rating / 2).toFixed(1)}</span>
+    </div>
+  )
+}
+
+export default function PopularSection() {
+  const [period, setPeriod] = useState('weekly')
+  const [allSeries, setAllSeries] = useState<Series[]>([])
+
+  useEffect(() => { getAllSeries().then(setAllSeries) }, [])
+
+  // Popülerliğe göre sırala (view_count, sonra rating)
+  const items = [...allSeries]
+    .sort((a, b) => {
+      if (period === 'weekly' || period === 'monthly') return b.view_count - a.view_count
+      return b.rating - a.rating
+    })
+    .slice(0, 7)
+
+  return (
+    <section className="mb-8">
+      {/* Başlık + sekmeler */}
+      <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <TrendingUp size={18} className="text-[#EF9F27]" /> Popüler
+          <TrendingUp size={17} className="text-[#EF9F27]" /> Popüler
         </h2>
+        <div className="flex rounded-xl overflow-hidden border border-[#1e1e2e]">
+          {PERIODS.map(p => (
+            <button key={p.key} onClick={() => setPeriod(p.key)}
+              className={cn(
+                'px-4 py-2 text-sm font-semibold transition-all',
+                period === p.key
+                  ? 'bg-[#EF9F27] text-white'
+                  : 'bg-[#13131c] text-[#9898b0] hover:text-white hover:bg-[#1a1a24]'
+              )}>
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-2">
-        {POPULAR.map((item, i) => (
+      {/* Liste */}
+      {items.length === 0 && (
+        <p className="text-sm text-[#555570] text-center py-8">Henüz seri eklenmedi.</p>
+      )}
+      <div className="space-y-3">
+        {items.map((item, i) => (
           <Link key={item.id} href={`/seri/${item.slug}`}
             className="flex items-center gap-4 bg-[#13131c] hover:bg-[#1a1a24] border border-[#1e1e2e] hover:border-[#EF9F27]/30 rounded-xl p-3 transition-all group">
 
-            <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0',
-              i === 0 ? 'bg-[#EF9F27]/20 text-[#EF9F27]' :
-              i === 1 ? 'bg-[#9898b0]/20 text-[#9898b0]' :
-              i === 2 ? 'bg-[#BA7517]/20 text-[#BA7517]' :
-              'bg-[#1a1a24] text-[#555570]'
-            )}>
-              {i + 1}
+            {/* Kapak + sıra numarası overlay */}
+            <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-[#1a1a24] flex-shrink-0 shadow-lg">
+              <div className="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                style={{ backgroundImage: `url(${item.cover_url})` }} />
+              {/* Sıra badge — sol üst köşe */}
+              <div className="absolute top-0 left-0 w-6 h-6 flex items-center justify-center text-xs font-bold rounded-br-lg bg-[#EF9F27] text-white">
+                {i + 1}
+              </div>
             </div>
 
-            <div className="w-10 h-14 rounded-lg overflow-hidden bg-[#1a1a24] flex-shrink-0">
-              <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${item.cover})` }} />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#e8e8f0] line-clamp-1 group-hover:text-[#EF9F27] transition-colors">
+            {/* Bilgi */}
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+              <p className="text-sm font-bold text-white group-hover:text-[#EF9F27] transition-colors leading-tight line-clamp-2">
                 {item.title}
               </p>
-              <p className="text-xs text-[#555570] mt-0.5">{item.genres[0]}</p>
-            </div>
-
-            <div className="text-right flex-shrink-0">
-              <div className="flex items-center gap-1 text-[#F59E0B] text-xs mb-0.5">
-                <Star size={10} fill="currentColor" /> {item.rating}
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-[#555570]">
-                <Eye size={9} /> {formatNumber(item.views)}
-              </div>
+              <p className="text-[11px] text-[#555570]">
+                Genres: {item.genre_names?.slice(0, 3).join(', ')}
+              </p>
+              <StarRating rating={item.rating * 2} />
             </div>
           </Link>
         ))}

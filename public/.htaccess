@@ -1,0 +1,25 @@
+Options -MultiViews
+RewriteEngine On
+
+# JS ve diğer statik dosyalar için MIME type
+AddType application/javascript .js
+AddType text/css .css
+AddType application/json .json
+
+# _next klasörü direkt sun (JS/CSS chunk'ları)
+RewriteCond %{REQUEST_URI} ^/_next/
+RewriteRule ^ - [L]
+
+# Mevcut dosya veya klasörse direkt sun
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Seri bölüm sayfaları → dummy static sayfaya yönlendir
+RewriteRule ^seri/([^/]+)/bolum/([^/]+)(/?)$ /seri/_/bolum/0/index.html [QSA,L]
+
+# Seri detay sayfaları → dummy static sayfaya yönlendir
+RewriteRule ^seri/([^/]+)(/?)$ /seri/_/index.html [QSA,L]
+
+# Diğer tüm rotalar → index.html
+RewriteRule ^ /index.html [QSA,L]

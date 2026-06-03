@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40">
+  <!-- Pixel/thug life gözlük - tam pixel art tarzı -->
+  <g fill="#111111">
+    <!-- Sol cam -->
+    <rect x="4" y="10" width="46" height="22" rx="0"/>
+    <!-- Sağ cam -->
+    <rect x="70" y="10" width="46" height="22" rx="0"/>
+    <!-- Köprü -->
+    <rect x="50" y="16" width="20" height="8"/>
+    <!-- Sol kulak çubuğu -->
+    <rect x="0" y="18" width="8" height="4"/>
+    <!-- Sağ kulak çubuğu -->
+    <rect x="112" y="18" width="8" height="4"/>
+  </g>
+  <!-- Cam yansıması (sol) -->
+  <rect x="8" y="13" width="12" height="4" fill="#333333"/>
+  <rect x="10" y="18" width="6" height="3" fill="#2A2A2A"/>
+  <!-- Cam yansıması (sağ) -->
+  <rect x="74" y="13" width="12" height="4" fill="#333333"/>
+  <rect x="76" y="18" width="6" height="3" fill="#2A2A2A"/>
+  <!-- Çerçeve vurgusu -->
+  <rect x="4" y="10" width="46" height="3" fill="#222222"/>
+  <rect x="70" y="10" width="46" height="3" fill="#222222"/>
+</svg>

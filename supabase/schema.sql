@@ -1,222 +1,289 @@
--- ═══════════════════════════════════════════════
--- MANHWA SİTESİ - VERİTABANI ŞEMASI
--- Supabase SQL Editor'a yapıştır ve çalıştır
--- ═══════════════════════════════════════════════
+-- İmugi Supabase Schema — SQL Editor'da çalıştır
 
--- Uzantılar
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- fuzzy search için
-
--- ── KULLANICILAR ────────────────────────────────
-CREATE TABLE IF NOT EXISTS profiles (
-  id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  username    TEXT UNIQUE NOT NULL,
-  avatar_url  TEXT,
-  role        TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ DEFAULT NOW()
+-- 1. Profiller
+create table if not exists profiles (
+  id                 uuid references auth.users on delete cascade primary key,
+  username           text unique not null,
+  avatar_url         text,
+  equipped_frame     text,
+  equipped_accessory text,
+  show_badge         boolean default true,
+  vip_points         integer default 0,
+  shop_balance       integer default 0,
+  last_daily_claim   date,
+  is_premium         boolean default false,
+  is_admin           boolean default false,
+  created_at         timestamptz default now()
 );
 
--- ── SERİLER ────────────────────────────────────
-CREATE TABLE IF NOT EXISTS series (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  slug          TEXT UNIQUE NOT NULL,          -- url-friendly isim
-  title         TEXT NOT NULL,
-  alt_titles    TEXT[],                         -- alternatif isimler
-  description   TEXT,
-  cover_url     TEXT,
-  banner_url    TEXT,                           -- hero için büyük görsel
-  status        TEXT NOT NULL DEFAULT 'ongoing'
-                  CHECK (status IN ('ongoing', 'completed', 'hiatus', 'cancelled')),
-  type          TEXT NOT NULL DEFAULT 'manhwa'
-                  CHECK (type IN ('manhwa', 'manga', 'manhua', 'webtoon')),
-  author        TEXT,
-  artist        TEXT,
-  release_year  INTEGER,
-  rating        NUMERIC(3,1) DEFAULT 0,
-  rating_count  INTEGER DEFAULT 0,
-  view_count    BIGINT DEFAULT 0,
-  bookmark_count INTEGER DEFAULT 0,
-  is_featured   BOOLEAN DEFAULT FALSE,         -- hero slider'da göster
-  is_adult      BOOLEAN DEFAULT FALSE,
-  created_at    TIMESTAMPTZ DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ DEFAULT NOW()
+-- Yeni kayıt → otomatik profil
+create or replace function handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into profiles (id, username)
+  values (new.id, coalesce(new.raw_user_meta_data->>'username', split_part(new.email,'@',1)));
+  return new;
+end;
+$$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users for each row execute function handle_new_user();
+
+-- 2. Seriler
+create table if not exists series (
+  id              uuid default gen_random_uuid() primary key,
+  slug            text unique not null,
+  title           text not null,
+  description     text,
+  cover_url       text,
+  status          text default 'ongoing',
+  genres          text[] default '{}',
+  author          text,
+  chapter_count   integer default 0,
+  latest_chapter  numeric default 0,
+  bookmark_count  integer default 0,
+  view_count      integer default 0,
+  rating          numeric default 0,
+  rating_count    integer default 0,
+  created_at      timestamptz default now(),
+  updated_at      timestamptz default now()
 );
 
--- ── TÜRLER ─────────────────────────────────────
-CREATE TABLE IF NOT EXISTS genres (
-  id    SERIAL PRIMARY KEY,
-  name  TEXT UNIQUE NOT NULL,
-  slug  TEXT UNIQUE NOT NULL
+-- 3. Bölümler
+create table if not exists chapters (
+  id         uuid default gen_random_uuid() primary key,
+  series_id  uuid references series on delete cascade,
+  num        numeric not null,
+  title      text,
+  pages      text[] default '{}',
+  created_at timestamptz default now(),
+  unique(series_id, num)
 );
 
-CREATE TABLE IF NOT EXISTS series_genres (
-  series_id  UUID REFERENCES series(id) ON DELETE CASCADE,
-  genre_id   INTEGER REFERENCES genres(id) ON DELETE CASCADE,
-  PRIMARY KEY (series_id, genre_id)
+-- Bölüm eklenince/silinince seri istatistiklerini güncelle
+create or replace function update_series_chapter_stats()
+returns trigger language plpgsql as $$
+begin
+  if TG_OP = 'DELETE' then
+    update series set
+      chapter_count  = (select count(*) from chapters where series_id = OLD.series_id),
+      latest_chapter = coalesce((select max(num) from chapters where series_id = OLD.series_id), 0),
+      updated_at     = now()
+    where id = OLD.series_id;
+    return OLD;
+  else
+    update series set
+      chapter_count  = (select count(*) from chapters where series_id = NEW.series_id),
+      latest_chapter = coalesce((select max(num) from chapters where series_id = NEW.series_id), 0),
+      updated_at     = now()
+    where id = NEW.series_id;
+    return NEW;
+  end if;
+end;
+$$;
+drop trigger if exists on_chapter_change on chapters;
+create trigger on_chapter_change
+  after insert or delete on chapters
+  for each row execute function update_series_chapter_stats();
+
+-- 4. Bookmarks
+create table if not exists bookmarks (
+  user_id    uuid references auth.users on delete cascade,
+  series_id  uuid references series on delete cascade,
+  created_at timestamptz default now(),
+  primary key (user_id, series_id)
 );
 
--- ── BÖLÜMLER ───────────────────────────────────
-CREATE TABLE IF NOT EXISTS chapters (
-  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  series_id    UUID NOT NULL REFERENCES series(id) ON DELETE CASCADE,
-  chapter_num  NUMERIC(8,1) NOT NULL,           -- 1, 1.5, 2 ...
-  title        TEXT,                            -- opsiyonel bölüm başlığı
-  version      TEXT NOT NULL DEFAULT 'quality'
-                 CHECK (version IN ('speed', 'quality')),
-  page_count   INTEGER DEFAULT 0,
-  view_count   BIGINT DEFAULT 0,
-  published_at TIMESTAMPTZ DEFAULT NOW(),
-  created_at   TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(series_id, chapter_num, version)
+-- Bookmark eklenince/silinince seri sayacını güncelle
+create or replace function update_series_bookmark_count()
+returns trigger language plpgsql as $$
+begin
+  if TG_OP = 'DELETE' then
+    update series set bookmark_count = greatest(0, bookmark_count - 1) where id = OLD.series_id;
+    return OLD;
+  else
+    update series set bookmark_count = bookmark_count + 1 where id = NEW.series_id;
+    return NEW;
+  end if;
+end;
+$$;
+drop trigger if exists on_bookmark_change on bookmarks;
+create trigger on_bookmark_change
+  after insert or delete on bookmarks
+  for each row execute function update_series_bookmark_count();
+
+-- 5. Yorumlar
+create table if not exists comments (
+  id         uuid default gen_random_uuid() primary key,
+  user_id    uuid references auth.users on delete cascade,
+  series_id  uuid references series on delete cascade,
+  content    text not null,
+  likes      uuid[] default '{}',
+  dislikes   uuid[] default '{}',
+  username   text,
+  avatar_url text,
+  frame_url  text,
+  is_premium boolean default false,
+  created_at timestamptz default now()
 );
 
--- ── BÖLÜM GÖRSELLERİ ──────────────────────────
-CREATE TABLE IF NOT EXISTS chapter_pages (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  chapter_id  UUID NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
-  page_num    INTEGER NOT NULL,
-  image_url   TEXT NOT NULL,
-  width       INTEGER,
-  height      INTEGER,
-  UNIQUE(chapter_id, page_num)
+-- 6. Yanıtlar
+create table if not exists replies (
+  id         uuid default gen_random_uuid() primary key,
+  comment_id uuid references comments on delete cascade,
+  user_id    uuid references auth.users on delete cascade,
+  content    text not null,
+  likes      uuid[] default '{}',
+  dislikes   uuid[] default '{}',
+  username   text,
+  avatar_url text,
+  frame_url  text,
+  is_premium boolean default false,
+  created_at timestamptz default now()
 );
 
--- ── PUANLAR ────────────────────────────────────
-CREATE TABLE IF NOT EXISTS ratings (
-  user_id    UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  series_id  UUID REFERENCES series(id) ON DELETE CASCADE,
-  score      INTEGER NOT NULL CHECK (score BETWEEN 1 AND 10),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (user_id, series_id)
+-- 7. Bildirimler
+create table if not exists notifications (
+  id         uuid default gen_random_uuid() primary key,
+  user_id    uuid references auth.users on delete cascade,
+  type       text not null,
+  title      text not null,
+  body       text,
+  link       text,
+  read       boolean default false,
+  created_at timestamptz default now()
 );
 
--- ── REAKSİYONLAR ──────────────────────────────
-CREATE TABLE IF NOT EXISTS reactions (
-  user_id    UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  series_id  UUID REFERENCES series(id) ON DELETE CASCADE,
-  type       TEXT NOT NULL CHECK (type IN ('upvote','funny','love','surprised','angry','sad')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (user_id, series_id, type)
+-- 8. Okuma geçmişi
+create table if not exists read_history (
+  id          uuid default gen_random_uuid() primary key,
+  user_id     uuid references auth.users on delete cascade,
+  series_id   uuid references series on delete cascade,
+  chapter_num numeric not null,
+  read_at     timestamptz default now(),
+  unique(user_id, series_id, chapter_num)
 );
 
--- ── YORUMLAR ───────────────────────────────────
-CREATE TABLE IF NOT EXISTS comments (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id     UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  series_id   UUID REFERENCES series(id) ON DELETE CASCADE,
-  chapter_id  UUID REFERENCES chapters(id) ON DELETE CASCADE,
-  parent_id   UUID REFERENCES comments(id) ON DELETE CASCADE, -- reply
-  content     TEXT NOT NULL,
-  is_spoiler  BOOLEAN DEFAULT FALSE,
-  like_count  INTEGER DEFAULT 0,
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ DEFAULT NOW(),
-  CHECK (series_id IS NOT NULL OR chapter_id IS NOT NULL)
+-- 9. Değerlendirmeler
+create table if not exists ratings (
+  user_id    uuid references auth.users on delete cascade,
+  series_id  uuid references series on delete cascade,
+  rating     numeric not null,
+  created_at timestamptz default now(),
+  primary key (user_id, series_id)
 );
 
--- ── BOOKMARK ───────────────────────────────────
-CREATE TABLE IF NOT EXISTS bookmarks (
-  user_id    UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  series_id  UUID REFERENCES series(id) ON DELETE CASCADE,
-  status     TEXT DEFAULT 'reading'
-               CHECK (status IN ('reading','completed','plan_to_read','dropped','on_hold')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (user_id, series_id)
-);
+-- Rating güncellenince seri ortalamasını güncelle
+create or replace function update_series_rating()
+returns trigger language plpgsql as $$
+begin
+  update series set
+    rating_count = (select count(*) from ratings where series_id = NEW.series_id),
+    rating       = coalesce((select round(avg(rating)::numeric, 1) from ratings where series_id = NEW.series_id), 0)
+  where id = NEW.series_id;
+  return NEW;
+end;
+$$;
+drop trigger if exists on_rating_change on ratings;
+create trigger on_rating_change
+  after insert or update on ratings
+  for each row execute function update_series_rating();
 
--- ── OKUMA GEÇMİŞİ ──────────────────────────────
-CREATE TABLE IF NOT EXISTS read_history (
-  user_id     UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  chapter_id  UUID REFERENCES chapters(id) ON DELETE CASCADE,
-  series_id   UUID REFERENCES series(id) ON DELETE CASCADE,
-  read_at     TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (user_id, chapter_id)
-);
+-- ── RLS ──────────────────────────────────────────────────────────
+alter table profiles      enable row level security;
+alter table series        enable row level security;
+alter table chapters      enable row level security;
+alter table bookmarks     enable row level security;
+alter table comments      enable row level security;
+alter table replies       enable row level security;
+alter table notifications enable row level security;
+alter table read_history  enable row level security;
+alter table ratings       enable row level security;
 
--- ── POPULER SERILER VIEW ───────────────────────
-CREATE OR REPLACE VIEW series_with_stats AS
-SELECT
-  s.*,
-  COALESCE(
-    (SELECT COUNT(*) FROM chapters c WHERE c.series_id = s.id AND c.version = 'quality'),
-    0
-  ) AS chapter_count,
-  (SELECT MAX(chapter_num) FROM chapters c WHERE c.series_id = s.id) AS latest_chapter,
-  (SELECT published_at FROM chapters c WHERE c.series_id = s.id ORDER BY published_at DESC LIMIT 1) AS last_updated,
-  ARRAY(
-    SELECT g.name FROM genres g
-    JOIN series_genres sg ON sg.genre_id = g.id
-    WHERE sg.series_id = s.id
-  ) AS genre_names
-FROM series s;
+-- Profiles
+drop policy if exists "profiles_select"      on profiles;
+drop policy if exists "profiles_update"      on profiles;
+create policy "profiles_select" on profiles  for select using (true);
+create policy "profiles_update" on profiles  for update
+  using (
+    auth.uid() = id
+    or (select is_admin from profiles where id = auth.uid()) = true
+  );
 
--- ── İNDEKSLER ─────────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_series_slug ON series(slug);
-CREATE INDEX IF NOT EXISTS idx_series_status ON series(status);
-CREATE INDEX IF NOT EXISTS idx_series_featured ON series(is_featured);
-CREATE INDEX IF NOT EXISTS idx_series_updated ON series(updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_series_views ON series(view_count DESC);
-CREATE INDEX IF NOT EXISTS idx_chapters_series ON chapters(series_id);
-CREATE INDEX IF NOT EXISTS idx_chapters_published ON chapters(published_at DESC);
-CREATE INDEX IF NOT EXISTS idx_read_history_user ON read_history(user_id, read_at DESC);
-CREATE INDEX IF NOT EXISTS idx_series_title_trgm ON series USING gin(title gin_trgm_ops);
+-- Series (herkes okur, sadece admin yazar)
+drop policy if exists "series_select"        on series;
+drop policy if exists "series_all_service"   on series;
+create policy "series_select" on series for select using (true);
+create policy "series_insert" on series for insert
+  with check ((select is_admin from profiles where id = auth.uid()) = true);
+create policy "series_update" on series for update
+  using ((select is_admin from profiles where id = auth.uid()) = true);
+create policy "series_delete" on series for delete
+  using ((select is_admin from profiles where id = auth.uid()) = true);
 
--- ── ÖRNEK TÜRLER ───────────────────────────────
-INSERT INTO genres (name, slug) VALUES
-  ('Aksiyon', 'aksiyon'),
-  ('Fantastik', 'fantastik'),
-  ('Macera', 'macera'),
-  ('Dövüş Sanatları', 'dovus-sanatlari'),
-  ('Shounen', 'shounen'),
-  ('Doğaüstü', 'dogaustu'),
-  ('Komedi', 'komedi'),
-  ('Drama', 'drama'),
-  ('Romantik', 'romantik'),
-  ('Büyü', 'buyu'),
-  ('Sistem', 'sistem'),
-  ('Manhwa', 'manhwa'),
-  ('Isekai', 'isekai'),
-  ('Reenkarnasyon', 'reenkarnasyon'),
-  ('Seinen', 'seinen')
-ON CONFLICT DO NOTHING;
+-- Chapters (herkes okur, sadece admin yazar)
+drop policy if exists "chapters_select"      on chapters;
+drop policy if exists "chapters_all_service" on chapters;
+create policy "chapters_select" on chapters for select using (true);
+create policy "chapters_insert" on chapters for insert
+  with check ((select is_admin from profiles where id = auth.uid()) = true);
+create policy "chapters_update" on chapters for update
+  using ((select is_admin from profiles where id = auth.uid()) = true);
+create policy "chapters_delete" on chapters for delete
+  using ((select is_admin from profiles where id = auth.uid()) = true);
 
--- ── RLS (Row Level Security) ───────────────────
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE read_history ENABLE ROW LEVEL SECURITY;
+-- Bookmarks
+drop policy if exists "bookmarks_all"        on bookmarks;
+create policy "bookmarks_all" on bookmarks for all using (auth.uid() = user_id);
 
--- Herkes profil görebilir
-CREATE POLICY "profiles_public_read" ON profiles FOR SELECT USING (true);
--- Sadece kendi profilini düzenleyebilir
-CREATE POLICY "profiles_own_update" ON profiles FOR UPDATE USING (auth.uid() = id);
+-- Comments
+drop policy if exists "comments_select"      on comments;
+drop policy if exists "comments_insert"      on comments;
+drop policy if exists "comments_update"      on comments;
+drop policy if exists "comments_delete"      on comments;
+create policy "comments_select" on comments  for select using (true);
+create policy "comments_insert" on comments  for insert with check (auth.uid() = user_id);
+create policy "comments_update" on comments  for update using (auth.uid() = user_id);
+create policy "comments_delete" on comments  for delete
+  using (auth.uid() = user_id or (select is_admin from profiles where id = auth.uid()) = true);
 
--- Seriler herkese açık
-ALTER TABLE series ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "series_public_read" ON series FOR SELECT USING (true);
-CREATE POLICY "series_admin_write" ON series FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
+-- Replies
+drop policy if exists "replies_select"       on replies;
+drop policy if exists "replies_insert"       on replies;
+drop policy if exists "replies_delete"       on replies;
+create policy "replies_select" on replies    for select using (true);
+create policy "replies_insert" on replies    for insert with check (auth.uid() = user_id);
+create policy "replies_delete" on replies    for delete
+  using (auth.uid() = user_id or (select is_admin from profiles where id = auth.uid()) = true);
 
--- Chapters herkese açık
-ALTER TABLE chapters ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "chapters_public_read" ON chapters FOR SELECT USING (true);
-CREATE POLICY "chapters_admin_write" ON chapters FOR ALL USING (
-  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
+-- Notifications
+drop policy if exists "notifs_all"           on notifications;
+create policy "notifs_own"   on notifications for select using (auth.uid() = user_id);
+create policy "notifs_update" on notifications for update using (auth.uid() = user_id);
+create policy "notifs_insert" on notifications for insert
+  with check (
+    auth.uid() = user_id
+    or (select is_admin from profiles where id = auth.uid()) = true
+  );
 
--- Yorumlar: herkes okur, giriş yapan yazar
-CREATE POLICY "comments_public_read" ON comments FOR SELECT USING (true);
-CREATE POLICY "comments_auth_insert" ON comments FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "comments_own_update" ON comments FOR UPDATE USING (auth.uid() = user_id);
+-- Read history
+drop policy if exists "history_all"          on read_history;
+create policy "history_all" on read_history  for all using (auth.uid() = user_id);
 
--- Bookmark/history: sadece kendi
-CREATE POLICY "bookmarks_own" ON bookmarks FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "history_own" ON read_history FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "ratings_own" ON ratings FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "reactions_own" ON reactions FOR ALL USING (auth.uid() = user_id);
+-- Ratings
+drop policy if exists "ratings_select"       on ratings;
+drop policy if exists "ratings_all"          on ratings;
+create policy "ratings_select" on ratings    for select using (true);
+create policy "ratings_all"    on ratings    for all   using (auth.uid() = user_id);
 
-SELECT 'Şema başarıyla oluşturuldu! ✅' AS result;
+-- ── STORAGE (Dashboard'dan da yapılabilir) ────────────────────────
+-- Bucket oluşturma: Dashboard → Storage → New bucket → "covers" (public) ve "chapters" (public)
+-- Aşağıdaki SQL'leri Storage → Policies kısmında çalıştır:
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('covers', 'covers', true) ON CONFLICT DO NOTHING;
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('chapters', 'chapters', true) ON CONFLICT DO NOTHING;
+
+-- Storage policies (herkes okur, sadece admin yazar)
+-- create policy "storage_covers_read"   on storage.objects for select using (bucket_id = 'covers');
+-- create policy "storage_covers_write"  on storage.objects for insert with check (bucket_id = 'covers' and (select is_admin from profiles where id = auth.uid()) = true);
+-- create policy "storage_chapters_read" on storage.objects for select using (bucket_id = 'chapters');
+-- create policy "storage_chapters_write" on storage.objects for insert with check (bucket_id = 'chapters' and (select is_admin from profiles where id = auth.uid()) = true);

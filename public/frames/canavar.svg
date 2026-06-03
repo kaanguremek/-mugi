@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Dış çerçeve gövdesi -->
+  <rect x="4" y="4" width="192" height="192" rx="14" ry="14" fill="none" stroke="#8B1A1A" stroke-width="12"/>
+  <rect x="8" y="8" width="184" height="184" rx="11" ry="11" fill="none" stroke="#C0392B" stroke-width="4" opacity="0.6"/>
+  <!-- Üst diş sırası -->
+  <g fill="#D4D4D4">
+    <polygon points="25,12 32,28 39,12"/>
+    <polygon points="43,10 50,27 57,10"/>
+    <polygon points="61,10 68,27 75,10"/>
+    <polygon points="79,10 86,27 93,10"/>
+    <polygon points="97,10 104,27 111,10"/>
+    <polygon points="115,10 122,27 129,10"/>
+    <polygon points="133,10 140,27 147,10"/>
+    <polygon points="151,10 158,27 165,10"/>
+    <polygon points="169,10 176,27 183,10"/>
+  </g>
+  <!-- Alt diş sırası -->
+  <g fill="#D4D4D4">
+    <polygon points="25,188 32,172 39,188"/>
+    <polygon points="43,190 50,173 57,190"/>
+    <polygon points="61,190 68,173 75,190"/>
+    <polygon points="79,190 86,173 93,190"/>
+    <polygon points="97,190 104,173 111,190"/>
+    <polygon points="115,190 122,173 129,190"/>
+    <polygon points="133,190 140,173 147,190"/>
+    <polygon points="151,190 158,173 165,190"/>
+    <polygon points="169,188 176,172 183,188"/>
+  </g>
+  <!-- Sol diş sırası -->
+  <g fill="#D4D4D4">
+    <polygon points="12,30 28,37 12,44"/>
+    <polygon points="10,50 27,57 10,64"/>
+    <polygon points="10,70 27,77 10,84"/>
+    <polygon points="10,90 27,97 10,104"/>
+    <polygon points="10,110 27,117 10,124"/>
+    <polygon points="10,130 27,137 10,144"/>
+    <polygon points="10,150 27,157 10,164"/>
+    <polygon points="12,170 28,163 12,156"/>
+  </g>
+  <!-- Sağ diş sırası -->
+  <g fill="#D4D4D4">
+    <polygon points="188,30 172,37 188,44"/>
+    <polygon points="190,50 173,57 190,64"/>
+    <polygon points="190,70 173,77 190,84"/>
+    <polygon points="190,90 173,97 190,104"/>
+    <polygon points="190,110 173,117 190,124"/>
+    <polygon points="190,130 173,137 190,144"/>
+    <polygon points="190,150 173,157 190,164"/>
+    <polygon points="188,170 172,163 188,156"/>
+  </g>
+  <!-- Dil (alt orta) -->
+  <path d="M85 185 Q100 178 115 185 Q108 195 100 198 Q92 195 85 185 Z" fill="#C0392B"/>
+  <path d="M100 182 L96 192 M100 182 L104 192" fill="none" stroke="#922B21" stroke-width="1.5"/>
+  <!-- İç daire -->
+  <circle cx="100" cy="100" r="68" fill="none" stroke="#8B1A1A" stroke-width="2.5" opacity="0.7"/>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100">
+  <defs>
+    <linearGradient id="xmasg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#CC1111"/>
+      <stop offset="100%" stop-color="#881111"/>
+    </linearGradient>
+  </defs>
+  <!-- Şapka eğri sivri kısmı -->
+  <path d="M60 5 C64 18 75 35 82 52 C72 48 48 48 38 52 C45 35 56 18 60 5 Z" fill="url(#xmasg)" stroke="#AA1111" stroke-width="1"/>
+  <!-- Pompon -->
+  <circle cx="60" cy="7" r="9" fill="white" stroke="#DDD" stroke-width="0.5"/>
+  <circle cx="58" cy="5" r="4" fill="white" opacity="0.8"/>
+  <!-- Şapka kıvrımı ucunda -->
+  <path d="M60 5 C65 12 72 26 76 40" fill="none" stroke="#AA1111" stroke-width="0.8" opacity="0.5"/>
+  <!-- Beyaz bant -->
+  <path d="M34 54 C36 48 84 48 86 54 C84 60 36 60 34 54 Z" fill="white" stroke="#DDD" stroke-width="0.5"/>
+  <!-- Bant üst -->
+  <ellipse cx="60" cy="52" rx="26" ry="6" fill="white" opacity="0.8"/>
+  <!-- Kürk doku -->
+  <g fill="#EEEEEE" opacity="0.5">
+    <circle cx="42" cy="54" r="3"/>
+    <circle cx="50" cy="57" r="2.5"/>
+    <circle cx="58" cy="55" r="3"/>
+    <circle cx="66" cy="57" r="2.5"/>
+    <circle cx="74" cy="54" r="3"/>
+    <circle cx="82" cy="56" r="2.5"/>
+  </g>
+  <!-- Şapka gölgesi -->
+  <path d="M46 50 C50 46 70 46 74 50" fill="none" stroke="#661111" stroke-width="1" opacity="0.4"/>
+</svg>

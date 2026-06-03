@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import ConditionalLayout from '@/components/layout/ConditionalLayout'
+import { AuthProvider } from '@/lib/auth-context'
 
 export const metadata: Metadata = {
-  title: { default: 'HaeTae', template: '%s | HaeTae' },
+  title: { default: 'İmugi', template: '%s | İmugi' },
   description: 'Türkçe manhwa, manga ve webtoon okuma platformu.',
   icons: {
     icon: [
@@ -23,9 +23,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-regular-rounded/css/uicons-regular-rounded.css" />
       </head>
       <body className="bg-[#0a0a0f] text-[#e8e8f0] antialiased">
-        <Navbar />
-        {children}
-        <Footer />
+        <AuthProvider>
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
+        </AuthProvider>
       </body>
     </html>
   )

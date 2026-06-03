@@ -1,10 +1,6 @@
-import type { Metadata } from 'next'
+'use client'
 import { Star, Zap, Crown, Lock, Gift, Calendar, MessageSquare, TrendingUp } from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'Puan Sistemi',
-  description: 'HaeTae VIP sistemi ve puan kazanma yolları hakkında her şey.',
-}
+import { useAuth, getVipLevel } from '@/lib/auth-context'
 
 const VIP_LEVELS = [
   { level: 1,  required: 0,     daily: 5,  premiumDaily: 12,  color: '#9898b0', glow: false },
@@ -35,6 +31,55 @@ function VipBadge({ level, color, glow }: { level: number; color: string; glow: 
   )
 }
 
+const VIP_THRESHOLDS = [0, 50, 150, 350, 700, 1300, 2500, 4500, 7500, 12000]
+
+function VipProgressBar() {
+  const { user } = useAuth()
+
+  if (!user) return (
+    <div className="bg-[#0d0d14] border border-[#EF9F27]/15 rounded-xl px-5 py-4 mb-3 text-xs text-[#555570] text-center">
+      VIP ilerlemenizi görmek için giriş yapın.
+    </div>
+  )
+
+  const points   = user.vipPoints ?? 0
+  const level    = getVipLevel(points)
+  const curV     = VIP_LEVELS[level - 1]
+  const nextV    = VIP_LEVELS[level] ?? null
+  const curThres = VIP_THRESHOLDS[level - 1]
+  const nextThres= nextV ? VIP_THRESHOLDS[level] : null
+  const pct      = nextThres ? Math.min(100, ((points - curThres) / (nextThres - curThres)) * 100) : 100
+
+  return (
+    <div className="bg-[#0d0d14] border border-[#EF9F27]/15 rounded-xl px-5 py-4 mb-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <VipBadge level={curV.level} color={curV.color} glow={curV.glow} />
+          <span className="text-xs text-[#555570]">Mevcut seviye</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {nextV && <>
+            <span className="text-xs text-[#9898b0]">
+              {points.toLocaleString('tr')} / {nextThres!.toLocaleString('tr')} puan
+            </span>
+            <VipBadge level={nextV.level} color={nextV.color} glow={nextV.glow} />
+          </>}
+          {!nextV && <span className="text-xs text-[#EF9F27] font-bold">Maksimum Seviye 🎉</span>}
+        </div>
+      </div>
+      <div className="w-full h-2 bg-[#1e1e2e] rounded-full overflow-hidden">
+        <div className="h-full rounded-full bg-gradient-to-r from-[#EF9F27] to-[#F5BA45] transition-all duration-500"
+          style={{ width: `${pct}%` }} />
+      </div>
+      {nextV && nextThres && (
+        <p className="text-[10px] text-[#555570] mt-1.5 text-right">
+          {(nextThres - points).toLocaleString('tr')} puan sonra VIP {nextV.level}
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function PuanSistemiPage() {
   return (
     <main className="pt-24 pb-20 min-h-screen">
@@ -47,7 +92,7 @@ export default function PuanSistemiPage() {
             <h1 className="text-3xl font-bold text-white">Puan & VIP Sistemi</h1>
           </div>
           <p className="text-[#9898b0] text-sm ml-4">
-            HaeTae'de aktif ol, puan kazan, VIP seviyeni yükselt. Yükseldikçe daha fazla ayrıcalık açılır.
+            İmugi'de aktif ol, puan kazan, VIP seviyeni yükselt. Yükseldikçe daha fazla ayrıcalık açılır.
           </p>
         </div>
 
@@ -59,7 +104,7 @@ export default function PuanSistemiPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { icon: Calendar,      label: 'Günlük Giriş',       desc: 'Her gün siteye giriş yap',             base: '+5 puan',  note: 'VIP seviyene göre artar' },
-              { icon: TrendingUp,    label: '7 Gün Serisi',        desc: 'Üst üste 7 gün giriş yap',            base: '+100 puan', note: 'Her Pazar sıfırlanır' },
+              { icon: TrendingUp,    label: '7 Gün Serisi',        desc: 'Üst üste 7 gün giriş yap',            base: '+300 puan', note: 'Her Pazar sıfırlanır' },
               { icon: MessageSquare, label: 'Yorum Yapma',         desc: 'Seri veya bölüme yorum bırak',        base: '+5 puan',  note: 'Günlük maks. 3 yorum' },
               { icon: Star,          label: 'Seri Değerlendirme', desc: 'Okuduğun seriye puan ver',             base: '+5 puan',  note: 'Seri başına 1 kez' },
             ].map(({ icon: Icon, label, desc, base, note }) => (
@@ -84,9 +129,33 @@ export default function PuanSistemiPage() {
           <div>
             <p className="text-sm font-bold text-white mb-1">7 Günlük Giriş Serisi</p>
             <p className="text-xs text-[#9898b0] leading-relaxed">
-              Üst üste 7 gün siteye giriş yaparsan <span className="text-[#EF9F27] font-semibold">+100 bonus puan</span> kazanırsın.
+              Üst üste 7 gün siteye giriş yaparsan <span className="text-[#EF9F27] font-semibold">+300 bonus puan</span> kazanırsın.
               Sayaç her <span className="text-white font-medium">Pazar gece yarısı</span> sıfırlanır — yeni haftaya yeniden başlarsın.
               Bir gün atlarsan seri bozulur, sayaç sıfırlanır.
+            </p>
+          </div>
+        </div>
+
+        {/* VIP vs Mağaza puan ayrımı */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-[#13131c] border border-[#EF9F27]/25 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-[#EF9F27]" />
+              <p className="text-sm font-bold text-white">VIP Puanı</p>
+            </div>
+            <p className="text-xs text-[#9898b0] leading-relaxed">
+              Tüm etkinliklerde kazandığın puanların <span className="text-white font-medium">kümülatif toplamı</span>.
+              Hiçbir zaman düşmez, yalnızca artar. VIP seviyeni bu toplam belirler.
+            </p>
+          </div>
+          <div className="bg-[#13131c] border border-[#22C55E]/25 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
+              <p className="text-sm font-bold text-white">Mağaza Bakiyesi</p>
+            </div>
+            <p className="text-xs text-[#9898b0] leading-relaxed">
+              Mağazadan kozmetik satın almak veya erken erişim açmak için harcadığın ayrı bakiye.
+              Harcama <span className="text-white font-medium">VIP puanını etkilemez</span>.
             </p>
           </div>
         </div>
@@ -97,24 +166,22 @@ export default function PuanSistemiPage() {
             <Crown size={16} className="text-[#EF9F27]" /> VIP Seviyeleri
           </h2>
           <div className="bg-[#13131c] border border-[#1e1e2e] rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-5 text-[11px] font-semibold text-[#555570] uppercase tracking-wider px-5 py-3 border-b border-[#1e1e2e]">
+          <VipProgressBar />
+
+            <div className="grid grid-cols-4 text-[11px] font-semibold text-[#555570] uppercase tracking-wider px-5 py-3 border-b border-[#1e1e2e]">
               <span>Seviye</span>
-              <span className="text-right">Gereken Puan</span>
               <span className="text-right">Günlük (Normal)</span>
               <span className="text-right text-[#EF9F27]">Günlük (Premium)</span>
-              <span className="text-right">Sonraki Seviye</span>
+              <span className="text-right">Sonraki Seviyeye</span>
             </div>
             {VIP_LEVELS.map((v, i) => {
               const next = VIP_LEVELS[i + 1]
               return (
                 <div key={v.level}
-                  className="grid grid-cols-5 items-center px-5 py-3.5 border-b border-[#1e1e2e] last:border-0 hover:bg-[#1a1a24] transition-colors">
+                  className="grid grid-cols-4 items-center px-5 py-3.5 border-b border-[#1e1e2e] last:border-0 hover:bg-[#1a1a24] transition-colors">
                   <div className="flex items-center gap-2">
                     <VipBadge level={v.level} color={v.color} glow={v.glow} />
                   </div>
-                  <span className="text-right text-sm text-[#9898b0]">
-                    {v.required.toLocaleString('tr')} puan
-                  </span>
                   <span className="text-right text-sm font-semibold text-[#9898b0]">
                     +{v.daily}
                   </span>
@@ -129,7 +196,7 @@ export default function PuanSistemiPage() {
             })}
           </div>
           <p className="text-[11px] text-[#555570] mt-2 ml-1">
-            * Puan eşikleri toplam kazanılan puana göre hesaplanır, harcanınca düşmez.
+            * VIP puanın hiçbir zaman düşmez. Harcamalar sadece Mağaza bakiyenden gider.
           </p>
         </section>
 
@@ -224,7 +291,7 @@ export default function PuanSistemiPage() {
               ['Premium Başlangıç Bonusu','—',                 '+500 VIP puanı'],
               ['Günlük Giriş Puanı',     'VIP\'e göre 5–62',  'VIP\'e göre +%20 bonus'],
               ['Yorum Puanı',            '+5 puan',            '+5 puan'],
-              ['7 Gün Streak Bonusu',    '+100 puan',          '+100 puan'],
+              ['7 Gün Streak Bonusu',    '+300 puan',          '+300 puan'],
               ['Yeni Bölüm Erişimi',     '5 saat sonra / puan ile', 'Anında'],
               ['İsim Görünümü',          'Beyaz',             'Altın gradient'],
               ['VIP Sistemi',            'Evet',              'Evet (ayrıca)'],
