@@ -61,10 +61,10 @@ export default function AdminPage() {
   const [tab,         setTab]         = useState<Tab>('seriler')
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) { setAuthChecked(true); return }
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) { setAuthChecked(true); return }
       setIsLoggedIn(true)
-      const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', session.user.id).single()
       setIsAdmin(profile?.is_admin ?? false)
       setAuthChecked(true)
     })
