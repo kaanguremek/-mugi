@@ -230,6 +230,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const update = async (data: Partial<Omit<ImugiUser, 'id' | 'email' | 'createdAt' | 'isAdmin'>>) => {
     if (!user) return
 
+    // Önce UI'ı güncelle (optimistic)
+    setUser(prev => prev ? { ...prev, ...data } : null)
+
     const profileData: Record<string, unknown> = {}
     if ('username'          in data) profileData.username           = data.username
     if ('avatar'            in data) profileData.avatar_url         = data.avatar
@@ -242,10 +245,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if ('isPremium'         in data) profileData.is_premium         = data.isPremium
 
     if (Object.keys(profileData).length > 0) {
-      await supabase.from('profiles').update(profileData).eq('id', user.id)
+      const { error } = await supabase.from('profiles').update(profileData).eq('id', user.id)
+      if (error) console.error('Profile update error:', error.message)
     }
-
-    setUser(prev => prev ? { ...prev, ...data } : null)
   }
 
   const toggleBookmark = (slug: string) => {
