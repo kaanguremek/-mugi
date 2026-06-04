@@ -21,6 +21,7 @@ export default function Navbar() {
   const router = useRouter()
 
   const [mobileOpen,  setMobileOpen]  = useState(false)
+  const [mobileSearch, setMobileSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchFocus, setSearchFocus] = useState(false)
   const [dropdown,    setDropdown]    = useState(false)
@@ -197,7 +198,7 @@ export default function Navbar() {
                           onClick={() => { setSearchQuery(''); setSearchFocus(false) }}
                           className="flex items-center gap-3 px-3 py-2.5 hover:bg-[#1a1a24] transition-colors group">
                           <div className="w-8 h-11 rounded-lg overflow-hidden bg-[#1a1a24] flex-shrink-0">
-                            <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${s.cover_url})` }} />
+                            <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${s.cover_url}")` }} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-white group-hover:text-[#EF9F27] transition-colors line-clamp-1">
@@ -278,9 +279,9 @@ export default function Navbar() {
 
             {/* Mobil — arama + bildirim + menü */}
             <div className="flex items-center gap-1 md:hidden">
-              <button onClick={() => { setMobileOpen(false); setSearchFocus(true) }}
+              <button onClick={() => { setMobileOpen(false); setNotifOpen(false); setMobileSearch(o => !o) }}
                 className="p-2 text-[#9898b0] hover:text-white transition-colors">
-                <i className="fi fi-rr-search text-base leading-none" />
+                {mobileSearch ? <X size={20} /> : <i className="fi fi-rr-search text-base leading-none" />}
               </button>
               {user && (
                 <button onClick={() => { setMobileOpen(false); setNotifOpen(!notifOpen) }}
@@ -293,7 +294,7 @@ export default function Navbar() {
                   )}
                 </button>
               )}
-              <button className="p-2 text-[#9898b0]" onClick={() => setMobileOpen(!mobileOpen)}>
+              <button className="p-2 text-[#9898b0]" onClick={() => { setMobileSearch(false); setMobileOpen(!mobileOpen) }}>
                 {mobileOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
@@ -301,13 +302,61 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobil arama paneli */}
+      {mobileSearch && (
+        <div className="md:hidden border-t border-[#1e1e2e] px-4 py-3 bg-[#111118]">
+          <div className="flex items-center gap-2 border rounded-xl px-3 py-2.5 bg-[#13131c] border-[#EF9F27]/40">
+            <Search size={15} className="text-[#555570] flex-shrink-0" />
+            <input
+              autoFocus
+              type="text"
+              placeholder="Seri ara..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="bg-transparent text-sm outline-none w-full text-white placeholder-[#555570]"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="text-[#555570] hover:text-white flex-shrink-0">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {searchQuery.trim().length >= 1 && (
+            <div className="mt-2 rounded-xl border border-[#1e1e2e] bg-[#13131c] overflow-hidden">
+              {searchResults.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-[#555570]">Sonuç bulunamadı</div>
+              ) : (
+                <>
+                  {searchResults.map(s => (
+                    <Link key={s.id} href={`/seri/${s.slug}`}
+                      onClick={() => { setSearchQuery(''); setMobileSearch(false) }}
+                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-[#1a1a24] transition-colors group">
+                      <div className="w-8 h-11 rounded-lg overflow-hidden bg-[#1a1a24] flex-shrink-0">
+                        <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${s.cover_url}")` }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white group-hover:text-[#EF9F27] transition-colors line-clamp-1">{s.title}</p>
+                        <p className="text-[11px] text-[#555570] mt-0.5">{s.genre_names?.[0]}</p>
+                      </div>
+                      <span className="text-[11px] text-yellow-400 flex-shrink-0">★ {s.rating}</span>
+                    </Link>
+                  ))}
+                  <Link href={`/seriler?q=${searchQuery}`}
+                    onClick={() => { setSearchQuery(''); setMobileSearch(false) }}
+                    className="block px-4 py-3 text-xs text-center text-[#EF9F27] hover:bg-[#1a1a24] transition-colors border-t border-[#1e1e2e]">
+                    Tüm sonuçları gör →
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Mobil menü */}
       {mobileOpen && (
         <div className="md:hidden border-t border-[#1e1e2e] px-4 py-4 space-y-1 bg-[#111118]">
-          <div className="flex items-center gap-2 border rounded-xl px-3 py-2 mb-3 bg-[#13131c] border-[#1e1e2e]">
-            <Search size={13} className="text-[#888]" />
-            <input placeholder="Seri ara..." className="bg-transparent text-sm outline-none w-full placeholder-[#888] text-white" />
-          </div>
           {[{ href:'/', label:'Ana Sayfa' }, { href:'/seriler', label:'Seriler' }, { href:'/bookmarks', label:'Listem' }, ...SITEMIZ_LINKS].map(l => (
             <Link key={l.href} href={l.href}
               className="block px-3 py-2.5 text-sm rounded-lg text-[#9898b0] hover:text-white hover:bg-[#1a1a24]"

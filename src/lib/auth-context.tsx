@@ -269,7 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const toggleBookmark = (slug: string) => {
     if (!user) { window.location.href = '/login'; return }
-
+    const userId = user.id
     const isBooked = user.bookmarks.includes(slug)
 
     // Optimistik güncelleme
@@ -280,29 +280,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         : [...prev.bookmarks, slug],
     } : null)
 
-    supabase
-      .from('series')
-      .select('id')
-      .eq('slug', slug)
-      .maybeSingle()
-      .then(({ data: series }) => {
-        if (!series) {
-          // Geri al
-          setUser(prev => prev ? {
-            ...prev,
-            bookmarks: isBooked
-              ? [...prev.bookmarks, slug]
-              : prev.bookmarks.filter(s => s !== slug),
-          } : null)
-          return
-        }
-        if (isBooked) {
-          supabase.from('bookmarks').delete()
-            .eq('user_id', user.id).eq('series_id', series.id)
-        } else {
-          supabase.from('bookmarks').insert({ user_id: user.id, series_id: series.id })
-        }
-      })
+    const revert = () => setUser(prev => prev ? {
+      ...prev,
+      bookmarks: isBooked
+        ? [...prev.bookmarks, slug]
+        : prev.bookmarks.filter(s => s !== slug),
+    } : null)
+
+    void (async () => {
+      const { data: series } = await supabase
+        .from('series').select('id').eq('slug', slug).maybeSingle()
+      if (!series) { revert(); return }
+
+      const { error } = isBooked
+        ? await supabase.from('bookmarks').delete().eq('user_id', userId).eq('series_id', series.id)
+        : await supabase.from('bookmarks').insert({ user_id: userId, series_id: series.id })
+
+      if (error) {
+        console.error('Bookmark error:', error.message)
+        revert()
+      }
+    })()
   }
 
   const isBookmarked = (slug: string) => (user?.bookmarks ?? []).includes(slug)

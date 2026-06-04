@@ -60,55 +60,66 @@ function RatingPopup({ seriesId, userId, currentRating, onClose, onSaved }: {
   seriesId: string; userId: string; currentRating: number
   onClose: () => void; onSaved: (avg: number) => void
 }) {
-  const [sel, setSel] = useState(currentRating)
-  const [hov, setHov] = useState(0)
+  const [sel,    setSel]    = useState(currentRating)
+  const [hov,    setHov]    = useState(0)
+  const [saving, setSaving] = useState(false)
 
-  const click = (star: number) => {
-    if (sel === star) setSel(star - 0.5)
-    else if (sel === star - 0.5) setSel(star)
-    else setSel(star)
-  }
+  const disp = hov > 0 ? hov : sel   // 0–5, 0.5 adımlarla
 
   const confirm = async () => {
-    if (!sel) return
-    await supabase.from('ratings').upsert({ user_id: userId, series_id: seriesId, rating: sel }, { onConflict: 'user_id,series_id' })
+    if (!sel || saving) return
+    setSaving(true)
+    const { error } = await supabase
+      .from('ratings')
+      .upsert({ user_id: userId, series_id: seriesId, rating: sel }, { onConflict: 'user_id,series_id' })
+    if (error) { console.error('Rating error:', error.message); setSaving(false); return }
+
     const { data } = await supabase.from('ratings').select('rating').eq('series_id', seriesId)
     const vals = (data ?? []).map((r: Record<string, unknown>) => Number(r.rating))
-    const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
+    const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : sel
     onSaved(Math.round(avg * 10) / 10)
+    setSaving(false)
     onClose()
   }
 
-  const disp = hov > 0 ? hov : sel
   return (
-    <div className="absolute top-full left-0 mt-2 z-50 bg-[#13131c] border border-[#EF9F27]/30 rounded-2xl p-4 shadow-2xl shadow-black/80 min-w-[230px]">
+    <div onClick={e => e.stopPropagation()}
+      className="absolute top-full left-0 mt-2 z-50 bg-[#13131c] border border-[#EF9F27]/30 rounded-2xl p-4 shadow-2xl shadow-black/80 min-w-[230px]">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-semibold text-[#9898b0]">
           Puanın: <span className="text-[#EF9F27]">{disp ? disp.toFixed(1) : '—'}</span>
         </span>
         <button onClick={onClose} className="text-[#555570] hover:text-white transition-colors"><X size={14} /></button>
       </div>
-      <div className="flex gap-2 mb-4 justify-center" onMouseLeave={() => setHov(0)}>
+
+      {/* Yıldızlar — her yıldızın sol yarısı .5, sağ yarısı tam puan */}
+      <div className="flex gap-1.5 mb-4 justify-center" onMouseLeave={() => setHov(0)}>
         {[1, 2, 3, 4, 5].map(i => {
-          const d = hov > 0 ? hov : sel
-          const full = d >= i
-          const half = !full && d >= i - 0.5
+          const fill = Math.max(0, Math.min(1, disp - (i - 1)))   // 0 | 0.5 | 1
           return (
-            <button key={i} onMouseEnter={() => setHov(i)} onClick={() => click(i)}
-              className="active:scale-95 transition-transform">
-              <i className={cn('fi leading-none transition-colors',
-                full ? 'fi-sr-star text-[#EF9F27]' :
-                half ? 'fi-sr-star text-[#EF9F27] opacity-50' :
-                'fi-rr-star text-[#555570]'
-              )} style={{ fontSize: 32 }} />
-            </button>
+            <div key={i} className="relative" style={{ width: 32, height: 32 }}>
+              {/* Gri taban */}
+              <i className="fi fi-sr-star absolute inset-0 leading-none text-[#333350]" style={{ fontSize: 32 }} />
+              {/* Turuncu dolgu (genişlikle kırpılır) */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ width: `${fill * 100}%` }}>
+                <i className="fi fi-sr-star absolute inset-0 leading-none text-[#EF9F27]" style={{ fontSize: 32 }} />
+              </div>
+              {/* Tık bölgeleri */}
+              <button type="button" aria-label={`${i - 0.5} puan`}
+                className="absolute inset-y-0 left-0 w-1/2 z-10"
+                onMouseEnter={() => setHov(i - 0.5)} onClick={() => setSel(i - 0.5)} />
+              <button type="button" aria-label={`${i} puan`}
+                className="absolute inset-y-0 right-0 w-1/2 z-10"
+                onMouseEnter={() => setHov(i)} onClick={() => setSel(i)} />
+            </div>
           )
         })}
       </div>
+
       <div className="flex gap-2">
-        <button onClick={confirm} disabled={!sel}
+        <button onClick={confirm} disabled={!sel || saving}
           className="flex-1 bg-[#EF9F27] hover:bg-[#BA7517] disabled:opacity-40 text-white text-xs font-semibold py-2 rounded-xl transition-all">
-          Onayla
+          {saving ? 'Kaydediliyor...' : 'Onayla'}
         </button>
         <button onClick={onClose} className="px-3 py-2 text-xs text-[#555570] hover:text-white rounded-xl border border-[#1e1e2e] transition-colors">
           Vazgeç

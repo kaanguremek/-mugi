@@ -37,7 +37,7 @@ export default function LatestChapters() {
 
               <div className="relative w-full aspect-[3/4] bg-[#1a1a24] overflow-hidden">
                 <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{ backgroundImage: `url(${item.cover})` }} />
+                  style={{ backgroundImage: `url("${item.cover}")` }} />
                 {locked && (
                   <div className="absolute top-2 left-2">
                     <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-400 bg-[#0a0a0f]/80 backdrop-blur-sm border border-yellow-500/30 px-1.5 py-0.5 rounded-full">

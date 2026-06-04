@@ -213,7 +213,7 @@ function SerilerInner() {
                 {/* Kapak */}
                 <div className="relative aspect-[3/4] bg-[#1a1a24] overflow-hidden">
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${series.cover_url})` }} />
+                    style={{ backgroundImage: `url("${series.cover_url}")` }} />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-70" />
 
                   {/* Puan */}

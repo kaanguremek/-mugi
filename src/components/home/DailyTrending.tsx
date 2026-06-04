@@ -54,7 +54,7 @@ export default function DailyTrending() {
               {/* Kapak */}
               <div className="relative aspect-[3/4] overflow-hidden bg-[#1a1a24]">
                 <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{ backgroundImage: `url(${series.cover_url})` }} />
+                  style={{ backgroundImage: `url("${series.cover_url}")` }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80" />
 
                 {/* Sıra */}

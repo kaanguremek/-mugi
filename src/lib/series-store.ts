@@ -14,6 +14,7 @@ export interface AdminSeries {
   chapterCount: number
   latestChapter: number
   bookmarkCount: number
+  viewCount: number
   rating: number
   ratingCount: number
 }
@@ -40,6 +41,7 @@ function dbToAdminSeries(s: Record<string, unknown>): AdminSeries {
     chapterCount:  (s.chapter_count as number) ?? 0,
     latestChapter: (s.latest_chapter as number) ?? 0,
     bookmarkCount: (s.bookmark_count as number) ?? 0,
+    viewCount:     (s.view_count as number) ?? 0,
     rating:        (s.rating as number) ?? 0,
     ratingCount:   (s.rating_count as number) ?? 0,
   }
@@ -57,7 +59,7 @@ function adminToSeries(a: AdminSeries): Series {
     author:         a.author,
     rating:         a.rating,
     rating_count:   a.ratingCount,
-    view_count:     0,
+    view_count:     a.viewCount,
     bookmark_count: a.bookmarkCount,
     is_featured:    false,
     is_adult:       false,

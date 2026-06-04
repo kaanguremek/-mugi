@@ -19,12 +19,10 @@ export default function HeroSlider() {
 
   useEffect(() => {
     getAllSeries().then(all => {
-      const built: Slide[] = []
-
-      all
+      const built: Slide[] = all
         .filter(s => !s.id.startsWith('mock') && s.cover_url)
         .slice(0, 6)
-        .forEach(s => built.push({ ...s, description: s.description ?? '' }))
+        .map(s => ({ ...s, description: s.description ?? '' }))
 
       setSlides(built)
     })
@@ -36,41 +34,40 @@ export default function HeroSlider() {
   }
 
   useEffect(() => {
-    if (paused || slides.length === 0) return
+    if (paused || slides.length <= 1) return
     const t = setInterval(() => go((current + 1) % slides.length), 6000)
     return () => clearInterval(t)
   }, [current, paused, slides.length])
 
   if (slides.length === 0) return (
-    <div className="rounded-2xl border border-[#1e1e2e] bg-[#0d0d14]" style={{ height: '280px' }} />
+    <div className="rounded-2xl border border-[#1e1e2e] bg-[#0d0d14] h-[220px] sm:h-[280px] lg:h-[300px]" />
   )
 
-  const s = slides[current]
+  const s = slides[Math.min(current, slides.length - 1)]
   const bookmarked = isBookmarked(s.slug)
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden border border-[#1e1e2e] bg-[#0d0d14]"
-      style={{ height: '300px' }}
+      className="relative rounded-2xl overflow-hidden border border-[#1e1e2e] bg-[#0d0d14] h-[220px] sm:h-[280px] lg:h-[300px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-[#EF9F27]/4 via-transparent to-transparent pointer-events-none" />
 
       <div className={cn(
-        'relative h-full flex items-stretch px-4 sm:px-6 gap-4 sm:gap-6 transition-opacity duration-220',
+        'relative h-full flex items-stretch p-4 sm:px-6 gap-4 sm:gap-6 transition-opacity duration-200',
         fading ? 'opacity-0' : 'opacity-100'
       )}>
 
-        {/* KAPAK — aspect-[3/4] ile LatestChapters ile aynı oran */}
-        <div className="flex-shrink-0 self-stretch flex items-center py-5">
-          <div className="h-full aspect-[3/4] max-h-[240px] rounded-xl overflow-hidden border border-[#EF9F27]/35 shadow-2xl shadow-black/60">
-            <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${s.cover_url})` }} />
+        {/* KAPAK — aspect-[3/4], yüksekliğe göre ölçeklenir */}
+        <Link href={`/seri/${s.slug}`} className="flex-shrink-0 self-stretch flex items-center py-1 sm:py-4">
+          <div className="h-full aspect-[3/4] max-h-[180px] sm:max-h-[210px] lg:max-h-[230px] rounded-xl overflow-hidden border border-[#EF9F27]/35 shadow-2xl shadow-black/60 bg-[#1a1a24]">
+            <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${s.cover_url}")` }} />
           </div>
-        </div>
+        </Link>
 
-        {/* ORTA — meta + butonlar (sabit genişlik, flex-1 değil) */}
-        <div className="flex flex-col justify-center gap-2 py-4 min-w-0 w-[240px] sm:w-[260px]">
+        {/* ORTA — meta + butonlar (flex-1 ile taşmayı önler) */}
+        <div className="flex flex-col justify-center gap-1.5 sm:gap-2 py-2 min-w-0 flex-1">
           <div className="flex gap-1 flex-wrap">
             {s.genre_names?.slice(0, 3).map(g => (
               <span key={g} className="text-[9px] sm:text-[10px] bg-[#EF9F27]/20 border border-[#EF9F27]/30 text-[#EF9F27] px-1.5 sm:px-2 py-0.5 rounded-full">
@@ -79,7 +76,7 @@ export default function HeroSlider() {
             ))}
           </div>
 
-          <h2 className="text-sm sm:text-lg lg:text-xl font-bold text-white leading-tight line-clamp-1">
+          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-white leading-tight line-clamp-2">
             {s.title}
           </h2>
 
@@ -87,13 +84,20 @@ export default function HeroSlider() {
             <span className="flex items-center gap-1 text-yellow-400 font-semibold">
               <Star size={10} fill="currentColor" /> {s.rating > 0 ? s.rating : '—'}
             </span>
-            <span className="hidden sm:flex items-center gap-1">
+            <span className="flex items-center gap-1">
               <BookOpen size={10} /> Bölüm {s.latest_chapter ?? s.chapter_count ?? 0}
             </span>
             <span className={cn('font-medium', s.status === 'ongoing' ? 'text-[#22C55E]' : 'text-[#EF9F27]')}>
               {STATUS_LABELS[s.status] ?? s.status}
             </span>
           </div>
+
+          {/* Konu — yalnızca geniş ekranlarda */}
+          {s.description && (
+            <p className="hidden lg:block text-sm text-[#b0b0c8] leading-relaxed line-clamp-3 mt-0.5">
+              {s.description}
+            </p>
+          )}
 
           {/* Butonlar */}
           <div className="flex gap-2 mt-1">
@@ -114,40 +118,29 @@ export default function HeroSlider() {
             </button>
           </div>
         </div>
-
-        {/* KONU PANELİ — flex-1 ile kalan tüm alanı kaplar */}
-        {s.description && (
-          <div className="hidden lg:flex items-center gap-4 flex-1 min-w-0">
-            <div className="w-px self-stretch my-8 bg-white/10 flex-shrink-0" />
-            <div className="flex flex-col justify-center gap-2 min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#EF9F27]/60">Konu</p>
-              <p className="text-sm text-[#b0b0c8] leading-relaxed line-clamp-7">
-                {s.description}
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Oklar + dots */}
-      <div className="absolute bottom-3 left-4 flex items-center gap-2">
-        <button onClick={() => go((current - 1 + slides.length) % slides.length)}
-          className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all">
-          <ChevronLeft size={13} />
-        </button>
-        <button onClick={() => go((current + 1) % slides.length)}
-          className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all">
-          <ChevronRight size={13} />
-        </button>
-        <div className="flex items-center gap-1.5 ml-1">
-          {slides.map((_, i) => (
-            <button key={i} onClick={() => go(i)}
-              className={cn('rounded-full transition-all duration-300',
-                i === current ? 'w-4 h-1.5 bg-[#EF9F27]' : 'w-1.5 h-1.5 bg-white/15 hover:bg-white/30'
-              )} />
-          ))}
+      {slides.length > 1 && (
+        <div className="absolute bottom-2.5 sm:bottom-3 left-4 flex items-center gap-2">
+          <button onClick={() => go((current - 1 + slides.length) % slides.length)}
+            className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all">
+            <ChevronLeft size={13} />
+          </button>
+          <button onClick={() => go((current + 1) % slides.length)}
+            className="w-6 h-6 bg-black/40 hover:bg-[#EF9F27] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all">
+            <ChevronRight size={13} />
+          </button>
+          <div className="flex items-center gap-1.5 ml-1">
+            {slides.map((_, i) => (
+              <button key={i} onClick={() => go(i)}
+                className={cn('rounded-full transition-all duration-300',
+                  i === current ? 'w-4 h-1.5 bg-[#EF9F27]' : 'w-1.5 h-1.5 bg-white/15 hover:bg-white/30'
+                )} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

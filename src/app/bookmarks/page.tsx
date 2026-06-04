@@ -151,7 +151,7 @@ export default function BookmarksPage() {
                   <Link href={`/seri/${s.slug}`} className="flex-shrink-0">
                     <div className="w-14 h-20 rounded-xl overflow-hidden bg-[#1a1a24]">
                       <div className="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                        style={{ backgroundImage: `url(${s.cover_url})` }} />
+                        style={{ backgroundImage: `url("${s.cover_url}")` }} />
                     </div>
                   </Link>
                   <div className="flex-1 min-w-0">
@@ -206,7 +206,7 @@ export default function BookmarksPage() {
                   <Link key={i} href={`/seri/${h.slug}/bolum/${h.chapter}`}
                     className="flex items-center gap-4 bg-[#13131c] border border-[#1e1e2e] hover:border-[#EF9F27]/25 rounded-2xl p-3 transition-all group">
                     <div className="w-14 h-20 rounded-xl overflow-hidden bg-[#1a1a24] flex-shrink-0">
-                      <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${h.cover})` }} />
+                      <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${h.cover}")` }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-white group-hover:text-[#EF9F27] transition-colors line-clamp-1">{h.title}</p>

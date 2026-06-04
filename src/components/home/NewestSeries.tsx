@@ -54,7 +54,7 @@ export default function NewestSeries() {
             {/* Kapak — PopularSection ile aynı boyut */}
             <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-[#1a1a24] flex-shrink-0 shadow-lg">
               <div className="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                style={{ backgroundImage: `url(${series.cover_url})` }} />
+                style={{ backgroundImage: `url("${series.cover_url}")` }} />
               <div className="absolute top-0 left-0 w-6 h-6 flex items-center justify-center text-xs font-bold rounded-br-lg bg-[#EF9F27] text-white">
                 {i + 1}
               </div>

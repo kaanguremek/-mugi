@@ -18,7 +18,7 @@ export default function SeriesCard({ series, showChapter = true, rank }: Props) 
       <div className="relative aspect-[3/4] overflow-hidden bg-[#1a1a24]">
         {series.cover_url ? (
           <div className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-            style={{ backgroundImage: `url(${series.cover_url})` }} />
+            style={{ backgroundImage: `url("${series.cover_url}")` }} />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <BookOpen size={32} className="text-[#333350]" />

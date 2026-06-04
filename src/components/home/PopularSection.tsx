@@ -50,11 +50,11 @@ export default function PopularSection() {
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <TrendingUp size={17} className="text-[#EF9F27]" /> Popüler
         </h2>
-        <div className="flex rounded-xl overflow-hidden border border-[#1e1e2e]">
+        <div className="flex rounded-lg overflow-hidden border border-[#1e1e2e]">
           {PERIODS.map(p => (
             <button key={p.key} onClick={() => setPeriod(p.key)}
               className={cn(
-                'px-4 py-2 text-sm font-semibold transition-all',
+                'px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap',
                 period === p.key
                   ? 'bg-[#EF9F27] text-white'
                   : 'bg-[#13131c] text-[#9898b0] hover:text-white hover:bg-[#1a1a24]'
@@ -77,7 +77,7 @@ export default function PopularSection() {
             {/* Kapak + sıra numarası overlay */}
             <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-[#1a1a24] flex-shrink-0 shadow-lg">
               <div className="w-full h-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                style={{ backgroundImage: `url(${item.cover_url})` }} />
+                style={{ backgroundImage: `url("${item.cover_url}")` }} />
               {/* Sıra badge — sol üst köşe */}
               <div className="absolute top-0 left-0 w-6 h-6 flex items-center justify-center text-xs font-bold rounded-br-lg bg-[#EF9F27] text-white">
                 {i + 1}
@@ -89,8 +89,8 @@ export default function PopularSection() {
               <p className="text-sm font-bold text-white group-hover:text-[#EF9F27] transition-colors leading-tight line-clamp-2">
                 {item.title}
               </p>
-              <p className="text-[11px] text-[#555570]">
-                Genres: {item.genre_names?.slice(0, 3).join(', ')}
+              <p className="text-[11px] text-[#555570] line-clamp-1">
+                {item.genre_names?.slice(0, 3).join(', ')}
               </p>
               <StarRating rating={item.rating * 2} />
             </div>

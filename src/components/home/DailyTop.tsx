@@ -41,7 +41,7 @@ export default function DailyTop() {
 
             {/* Kapak */}
             <div className="w-9 h-12 rounded-lg overflow-hidden bg-[#1a1a24] flex-shrink-0">
-              <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${item.cover})` }} />
+              <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${item.cover}")` }} />
             </div>
 
             {/* Bilgi */}
