@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BookOpen, Plus, Megaphone, Users, X, Check, Eye, Trash2, Gift, LogIn } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
