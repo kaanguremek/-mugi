@@ -2,20 +2,21 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Eye, EyeOff, Mail, Lock, User, CheckCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 const inputCls = 'w-full pl-9 pr-10 py-3 rounded-xl border bg-[#1a1a24] border-[#1e1e2e] text-white text-sm outline-none transition-all focus:border-[#EF9F27]/50 placeholder-[#555570]'
 
 export default function RegisterPage() {
   const { register } = useAuth()
+  const router = useRouter()
 
   const [form,    setForm]    = useState({ username: '', email: '', password: '', password2: '' })
   const [show,    setShow]    = useState(false)
   const [show2,   setShow2]   = useState(false)
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
@@ -27,31 +28,9 @@ export default function RegisterPage() {
     if (form.password.length < 6)         { setError('Şifre en az 6 karakter olmalı.'); setLoading(false); return }
     const err = await register(form.username, form.email, form.password)
     if (err) { setError(err); setLoading(false); return }
-    setSuccess(true)
-    setLoading(false)
+    // E-posta onayı kapalı — kullanıcı kayıtla birlikte giriş yapmış olur, direkt ana sayfaya
+    router.push('/')
   }
-
-  if (success) return (
-    <main className="min-h-screen flex items-center justify-center px-4 bg-[#0a0a0f]">
-      <div className="w-full max-w-sm bg-[#13131c] border border-[#1e1e2e] rounded-2xl p-8 text-center">
-        <div className="w-14 h-14 bg-green-500/15 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle size={28} className="text-green-400" />
-        </div>
-        <h2 className="text-xl font-bold text-white mb-2">Hesabın Oluşturuldu!</h2>
-        <p className="text-sm text-[#9898b0] mb-3">
-          Hoş geldin <span className="text-[#EF9F27] font-medium">{form.username}</span>!
-        </p>
-        <p className="text-xs text-[#555570] mb-6 leading-relaxed">
-          <strong className="text-[#9898b0]">{form.email}</strong> adresine bir onay e-postası gönderdik.
-          E-postanı onayladıktan sonra giriş yapabilirsin.
-        </p>
-        <Link href="/login"
-          className="block w-full py-3 bg-[#EF9F27] hover:bg-[#BA7517] text-white font-semibold rounded-xl transition-all text-sm text-center">
-          Giriş Yap
-        </Link>
-      </div>
-    </main>
-  )
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-10 bg-[#0a0a0f] relative overflow-hidden">
