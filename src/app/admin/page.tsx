@@ -52,69 +52,58 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputCls = 'w-full bg-[#1a1a24] border border-[#1e1e2e] text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:border-[#EF9F27]/50 placeholder-[#555570] transition-all'
 
 export default function AdminPage() {
-  const [authChecked, setAuthChecked] = useState(false)
-  const [isLoggedIn,  setIsLoggedIn]  = useState(false)
-  const [isAdmin,     setIsAdmin]     = useState(false)
-  const [authed,      setAuthed]      = useState(false)
-  const [pw,          setPw]          = useState('')
-  const [pwErr,       setPwErr]       = useState('')
-  const [tab,         setTab]         = useState<Tab>('seriler')
-
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session?.user) { setAuthChecked(true); return }
-      setIsLoggedIn(true)
-      const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', session.user.id).single()
-      setIsAdmin(profile?.is_admin ?? false)
-      setAuthChecked(true)
-    })
-  }, [])
+  const { user, ready } = useAuth()
+  const [authed, setAuthed] = useState(false)
+  const [pw,     setPw]     = useState('')
+  const [pwErr,  setPwErr]  = useState('')
+  const [tab,    setTab]    = useState<Tab>('seriler')
 
   const tryLogin = () => {
-    if (!isLoggedIn) { setPwErr('Önce hesabınıza giriş yapmalısınız.'); return }
-    if (!isAdmin)    { setPwErr('Bu hesabın admin yetkisi yok.'); return }
-    if (pw === ADMIN_PASSWORD) setAuthed(true)
+    if (pw === ADMIN_PASSWORD) { setAuthed(true); setPwErr('') }
     else setPwErr('Yanlış şifre.')
   }
 
-  if (!authChecked) return (
+  if (!ready) return (
     <main className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
-      <p className="text-[#555570] text-sm">Kontrol ediliyor...</p>
+      <p className="text-[#555570] text-sm">Yükleniyor...</p>
+    </main>
+  )
+
+  if (!user) return (
+    <main className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4">
+      <div className="w-full max-w-sm bg-[#13131c] border border-[#1e1e2e] rounded-2xl p-8 text-center">
+        <h1 className="text-xl font-bold text-white mb-4">Admin Paneli</h1>
+        <p className="text-sm text-[#9898b0] mb-4">Giriş yapmanız gerekiyor.</p>
+        <Link href="/login" className="inline-flex items-center gap-2 bg-[#EF9F27] hover:bg-[#BA7517] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all">
+          <LogIn size={14} /> Giriş Yap
+        </Link>
+      </div>
+    </main>
+  )
+
+  if (!user.isAdmin) return (
+    <main className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4">
+      <div className="w-full max-w-sm bg-[#13131c] border border-[#1e1e2e] rounded-2xl p-8 text-center">
+        <h1 className="text-xl font-bold text-white mb-4">Admin Paneli</h1>
+        <p className="text-sm text-red-400">Bu hesabın admin yetkisi yok.</p>
+        <p className="text-xs text-[#555570] mt-2">Kullanıcı adın: <span className="text-white">{user.username}</span></p>
+      </div>
     </main>
   )
 
   if (!authed) return (
     <main className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4">
       <div className="w-full max-w-sm bg-[#13131c] border border-[#1e1e2e] rounded-2xl p-8">
-        <h1 className="text-xl font-bold text-white mb-2 text-center">Admin Paneli</h1>
-        {!isLoggedIn && (
-          <div className="mb-5 text-center">
-            <p className="text-sm text-[#9898b0] mb-3">Admin paneline erişmek için önce giriş yapın.</p>
-            <Link href="/login"
-              className="inline-flex items-center gap-2 bg-[#EF9F27] hover:bg-[#BA7517] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all">
-              <LogIn size={14} /> Giriş Yap
-            </Link>
-          </div>
-        )}
-        {isLoggedIn && !isAdmin && (
-          <p className="text-sm text-red-400 text-center mb-4">Bu hesabın admin yetkisi yok.</p>
-        )}
-        {isLoggedIn && isAdmin && (
-          <>
-            <p className="text-xs text-[#555570] text-center mb-4">Admin şifresini girin.</p>
-            <input type="password" placeholder="Admin şifresi" value={pw}
-              onChange={e => setPw(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && tryLogin()}
-              className={inputCls} />
-          </>
-        )}
+        <h1 className="text-xl font-bold text-white mb-6 text-center">Admin Paneli</h1>
+        <input type="password" placeholder="Admin şifresi" value={pw}
+          onChange={e => setPw(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && tryLogin()}
+          className={inputCls} />
         {pwErr && <p className="text-xs text-red-400 mt-2">{pwErr}</p>}
-        {isLoggedIn && isAdmin && (
-          <button onClick={tryLogin}
-            className="w-full mt-4 py-2.5 bg-[#EF9F27] hover:bg-[#BA7517] text-white font-semibold rounded-xl transition-all text-sm">
-            Giriş
-          </button>
-        )}
+        <button onClick={tryLogin}
+          className="w-full mt-4 py-2.5 bg-[#EF9F27] hover:bg-[#BA7517] text-white font-semibold rounded-xl transition-all text-sm">
+          Giriş
+        </button>
       </div>
     </main>
   )
