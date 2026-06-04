@@ -160,7 +160,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
+    let active = true
+
+    // İlk yükleme: mevcut oturumu al (callback dışında olduğu için kilit sorunu yok)
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!active) return
       if (session?.user) {
         loadProfile(session.user)
       } else {
@@ -168,9 +172,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // ÖNEMLİ: onAuthStateChange callback'i Supabase'in iç auth kilidini tutar.
+    // Callback içinde doğrudan supabase.from(...) sorgusu çağırmak (await) DEADLOCK
+    // yaratır ve sayfa donar. Bu yüzden loadProfile'ı setTimeout ile kilidin
+    // dışına erteliyoruz. INITIAL_SESSION zaten yukarıdaki getSession ile işleniyor.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'INITIAL_SESSION') return
       if (session?.user) {
-        await loadProfile(session.user)
+        setTimeout(() => { if (active) loadProfile(session.user) }, 0)
       } else {
         setUser(null)
         setNotifs([])
@@ -178,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => { active = false; subscription.unsubscribe() }
   }, [loadProfile])
 
   const login = async (email: string, password: string): Promise<string | null> => {
@@ -200,25 +209,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const register = async (username: string, email: string, password: string): Promise<string | null> => {
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username)
-      .maybeSingle()
+    try {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle()
 
-    if (existing) return 'Bu kullanıcı adı alınmış.'
+      if (existing) return 'Bu kullanıcı adı alınmış.'
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { username } },
-    })
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin.')), 15000)
+      )
+      const signUpPromise = supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username } },
+      })
+      const { error } = await Promise.race([signUpPromise, timeout]) as Awaited<typeof signUpPromise>
 
-    if (error) {
-      if (error.message.toLowerCase().includes('already')) return 'Bu e-posta zaten kayıtlı.'
-      return error.message
+      if (error) {
+        if (error.message.toLowerCase().includes('already')) return 'Bu e-posta zaten kayıtlı.'
+        return error.message
+      }
+      return null
+    } catch (e) {
+      return (e as Error).message
     }
-    return null
   }
 
   const logout = async () => {
