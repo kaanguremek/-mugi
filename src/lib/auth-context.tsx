@@ -182,13 +182,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [loadProfile])
 
   const login = async (email: string, password: string): Promise<string | null> => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      if (error.message.toLowerCase().includes('invalid')) return 'E-posta veya şifre yanlış.'
-      if (error.message.toLowerCase().includes('email')) return 'E-posta adresinizi onaylayın.'
-      return error.message
+    try {
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin.')), 15000)
+      )
+      const authPromise = supabase.auth.signInWithPassword({ email, password })
+      const { error } = await Promise.race([authPromise, timeout]) as Awaited<typeof authPromise>
+      if (error) {
+        if (error.message.toLowerCase().includes('invalid')) return 'E-posta veya şifre yanlış.'
+        if (error.message.toLowerCase().includes('email')) return 'E-posta adresinizi onaylayın.'
+        return error.message
+      }
+      return null
+    } catch (e) {
+      return (e as Error).message
     }
-    return null
   }
 
   const register = async (username: string, email: string, password: string): Promise<string | null> => {

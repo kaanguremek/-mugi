@@ -23,7 +23,8 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     const err = await login(identifier, password)
-    if (err) { setError(err); setLoading(false); return }
+    setLoading(false)
+    if (err) { setError(err); return }
     router.push('/')
   }
 
